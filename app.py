@@ -1,6 +1,6 @@
 from dash import Dash
 import dash_bootstrap_components as dbc
-from src.layouts.layout import get_layout
+from src.layouts import get_layout
 from src.callbacks import register_callbacks, party_set_options, default_start, default_end
 
 
