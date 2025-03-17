@@ -1,13 +1,10 @@
 import datetime
 import dash
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, no_update
 import plotly.express as px
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration, join_dates
-from src.callbacks.shared import party_set_options, playlist_id_to_date, default_start, default_end
-# These shared variables should be defined somewhere (or imported from a shared module)
-# For this example, we assume they are defined in this file or imported:
-
+from src.callbacks.shared import party_set_options, playlist_id_to_date, default_start, default_end, party_sets
 def register_aggregate_callbacks(app):
     @app.callback(
         [
@@ -128,7 +125,7 @@ def register_aggregate_callbacks(app):
             rating=("rating", "max")
         ).reset_index()
         group_df.rename(columns={"artist": "Artist", "title": "Song",
-                                 "times_played": "Times Played", "dates": "Dates", "rating": "Rating"}, inplace=True)
+                                  "times_played": "Times Played", "dates": "Dates", "rating": "Rating"}, inplace=True)
         group_df = group_df[["Times Played", "Song", "Artist", "Dates", "Rating"]]
     
         return (total_songs_text, unique_songs_text, unique_artists_text, avg_bpm_text,
@@ -152,7 +149,7 @@ def register_aggregate_callbacks(app):
         selected_ids = [pl["id"] for pl in party_sets if pl["date"] and start_dt <= pl["date"] <= end_dt]
         return selected_ids
 
-# Expose shared data if needed by other callback files.
+# Expose shared variables if needed by other modules.
 shared_data = {
     "party_set_options": party_set_options,
     "playlist_id_to_date": playlist_id_to_date,

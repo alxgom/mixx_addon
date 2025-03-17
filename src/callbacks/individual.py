@@ -2,7 +2,7 @@ import dash
 from dash import dcc, dash_table
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration
-from src.callbacks.shared import party_set_options, playlist_id_to_date, default_start, default_end
+
 def register_individual_callbacks(app):
     @app.callback(
         dash.Output("individual-playlist-table", "data"),
