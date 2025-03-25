@@ -1,10 +1,10 @@
 import dash
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, no_update
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 from src.database.database import get_crates, get_songs_not_in_crates, format_duration
-from src.callbacks.shared import party_set_options, playlist_id_to_date, default_start, default_end
+
 def register_crates_callbacks(app):
     @app.callback(
         dash.Output("crate-structure-chart", "figure"),
@@ -12,7 +12,7 @@ def register_crates_callbacks(app):
     )
     def update_crate_structure_chart(active_tab):
         if active_tab != "crates":
-            return dash.no_update
+            return no_update
         crates = get_crates()
         if not crates:
             return {}
@@ -39,7 +39,7 @@ def register_crates_callbacks(app):
     )
     def update_crate_structure_table(active_tab):
         if active_tab != "crates":
-            return dash.no_update, dash.no_update
+            return no_update, no_update
         crates = get_crates()
         if not crates:
             return [], []

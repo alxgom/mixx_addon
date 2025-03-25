@@ -4,7 +4,8 @@ from dash import dcc, html, dash_table, no_update
 import plotly.express as px
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration, join_dates
-from src.callbacks.shared import party_set_options, playlist_id_to_date, default_start, default_end, party_sets
+from src.callbacks.shared import get_shared_data
+
 def register_aggregate_callbacks(app):
     @app.callback(
         [
@@ -29,6 +30,12 @@ def register_aggregate_callbacks(app):
         ]
     )
     def update_aggregate_dashboard(selected_set_ids, start_date, end_date):
+        print("Aggregate callback triggered")
+        shared = get_shared_data()
+        # Get the up-to-date shared variables.
+        playlist_id_to_date = shared["playlist_id_to_date"]
+        party_sets = shared["party_sets"]
+
         if not selected_set_ids:
             default_fig = {}
             return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
@@ -48,6 +55,7 @@ def register_aggregate_callbacks(app):
                 if end_date_dt and set_date > end_date_dt:
                     continue
                 filtered_set_ids.append(set_id)
+        #print("Filtered playlist IDs:", filtered_set_ids)
         if not filtered_set_ids:
             default_fig = {}
             return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
@@ -62,6 +70,7 @@ def register_aggregate_callbacks(app):
             for track in tracks:
                 track["set_date"] = set_date
                 all_tracks.append(track)
+        #print("Total tracks collected:", len(all_tracks))
         if not all_tracks:
             default_fig = {}
             return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
@@ -70,6 +79,7 @@ def register_aggregate_callbacks(app):
                     default_fig, default_fig, default_fig, [])
     
         df = pd.DataFrame(all_tracks)
+        #print("DataFrame head:\n", df.head())
         df["bpm"] = pd.to_numeric(df["bpm"], errors="coerce")
         df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
     
@@ -146,13 +156,16 @@ def register_aggregate_callbacks(app):
             return no_update
         start_dt = datetime.datetime.fromisoformat(start_date)
         end_dt = datetime.datetime.fromisoformat(end_date)
-        selected_ids = [pl["id"] for pl in party_sets if pl["date"] and start_dt <= pl["date"] <= end_dt]
+        # Use shared party_sets from fresh shared data.
+        shared = get_shared_data()
+        party_sets = shared["party_sets"]
+        selected_ids = [pl["id"] for pl in party_sets if pl.get("date") and start_dt <= pl["date"] <= end_dt]
         return selected_ids
-
-# Expose shared variables if needed by other modules.
-shared_data = {
-    "party_set_options": party_set_options,
-    "playlist_id_to_date": playlist_id_to_date,
-    "default_start": default_start,
-    "default_end": default_end
-}
+    
+    global shared_data
+    shared_data = {
+        "party_set_options": get_shared_data()["party_set_options"],
+        "playlist_id_to_date": get_shared_data()["playlist_id_to_date"],
+        "default_start": get_shared_data()["default_start"],
+        "default_end": get_shared_data()["default_end"]
+    }

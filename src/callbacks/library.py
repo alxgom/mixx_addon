@@ -19,10 +19,16 @@ def register_library_callbacks(app):
         lib_df = pd.DataFrame(library_songs) if library_songs else pd.DataFrame()
         total = len(lib_df)
         total_text = f"Total Songs: {total}"
+        
+        # Process ratings: convert to numeric, drop songs without rating and filter for ratings 1 to 5.
         if "rating" in lib_df.columns and not lib_df.empty:
-            rating_counts = lib_df["rating"].value_counts(dropna=False).reset_index()
+            lib_df["rating"] = pd.to_numeric(lib_df["rating"], errors="coerce")
+            rated_df = lib_df.dropna(subset=["rating"])
+            rated_df = rated_df[(rated_df["rating"] >= 1) & (rated_df["rating"] <= 5)]
+            rating_counts = rated_df["rating"].value_counts().sort_index().reset_index()
             rating_counts.columns = ["rating", "count"]
-            fig = px.pie(rating_counts, names="rating", values="count", title="Rating Distribution", hole=0.4)
+            fig = px.bar(rating_counts, x="rating", y="count", title="Song Ratings Distribution (1-5)")
+            fig.update_layout(xaxis_title="Rating", yaxis_title="Number of Songs")
         else:
             fig = {}
         lib_data = lib_df.to_dict("records")

@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 def get_layout(party_set_options, default_start, default_end):
-    layout = dbc.Container([
+    return dbc.Container([
         html.H2("Mixxx Metadata Dashboard"),
         dbc.Tabs(
             [
@@ -16,4 +16,3 @@ def get_layout(party_set_options, default_start, default_end):
         ),
         html.Div(id="tab-content")
     ], fluid=True)
-    return layout
