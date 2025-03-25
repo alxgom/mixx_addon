@@ -8,7 +8,22 @@ The dashboard relies on my workflow, where I save the sets I played as playlists
 
 ![image](https://github.com/user-attachments/assets/729a3003-49dd-4fc8-b424-298464f3e12b)
 
+## Example:
+
+  
+![image](https://github.com/user-attachments/assets/0502b100-2a16-416c-a13b-0ede16a1c6fb)
 
 
 
 
+The dashboad consists on four tabs: 
+- Agregate playlists: Aggregate metadata from past sets. Let's me see which artists I been playing most, which I haven't played, and other information. 
+ 
+ - Crates: Analysis of my crates classification system (To be implemented)
+
+- Individual Playlist: Analysis of individual sets. Which songs I played, in what order, bpm succession, etc. 
+
+- Library: Meta analysis of my whole library. How many songs do I have, how I rate them, how many artists...
+
+### Future ideas: 
+- Use some AI tool to parse the web and enhance my data. For example, using online data to find the players of each ensemble. First date of publication of the song. Classify songs into Big band, or small ensembles; legacy artists or modern artists, etc...  
