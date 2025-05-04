@@ -22,6 +22,19 @@ def aggregate_layout():
                     start_date_placeholder_text="Start Date",
                     end_date_placeholder_text="End Date"
                 ),
+                # ── Style toggles ──
+                dbc.Label("Style:"),
+                dbc.Checklist(
+                    id="style-filter",
+                    options=[
+                        {"label": "Blues", "value": "blues"},
+                        {"label": "Lindy", "value": "lindy"},
+                    ],
+                    value=["blues", "lindy"],
+                    inline=True,
+                    switch=True,
+                ),
+                html.Br(),
         dbc.Row([
             dbc.Col([
                 html.H5("Choose set to analyze"),

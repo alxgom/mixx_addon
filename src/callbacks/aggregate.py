@@ -24,17 +24,35 @@ def register_aggregate_callbacks(app):
             dash.Output("played-songs-table", "data")
         ],
         [
+            dash.Input("style-filter", "value"), 
             dash.Input("sets-dropdown", "value"),
             dash.Input("date-range-picker", "start_date"),
             dash.Input("date-range-picker", "end_date")
         ]
     )
-    def update_aggregate_dashboard(selected_set_ids, start_date, end_date):
+    def update_aggregate_dashboard(styles, selected_set_ids, start_date, end_date):
         print("Aggregate callback triggered")
         shared = get_shared_data()
         # Get the up-to-date shared variables.
         playlist_id_to_date = shared["playlist_id_to_date"]
         party_sets = shared["party_sets"]
+
+# ① Filter party_sets by selected style(s)
+        valid_ids = []
+        for pl in party_sets:
+            parts = [p.strip().lower() for p in pl["name"].split(" - ")]
+            style = parts[1] if len(parts) > 1 else ""
+            if style in styles:
+                valid_ids.append(pl["id"])
+
+        # ② Intersect with user selection
+        if not selected_set_ids:
+            return _empty_aggregate()
+        # keep only those selected that match style
+        selected_set_ids = [pid for pid in selected_set_ids if pid in valid_ids]
+        if not selected_set_ids:
+            return _empty_aggregate()
+
 
         if not selected_set_ids:
             default_fig = {}
