@@ -4,6 +4,7 @@ from .individual import register_individual_callbacks
 from .library import register_library_callbacks
 from .tabs_content import register_tabs_callbacks
 from .shared import get_shared_data
+#from .spot import export_mixxx_to_spotif
 
 # Compute shared data once for initial defaults.
 shared_data = get_shared_data()

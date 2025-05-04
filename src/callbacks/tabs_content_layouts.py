@@ -143,7 +143,10 @@ def individual_layout():
             ],
             data=[]
         ),
-        dcc.Graph(id="individual-playlist-cumulative-plot")
+        dcc.Graph(id="individual-playlist-cumulative-plot"),
+
+        dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="mt-2"),
+        html.Div(id="export-spotify-link", className="mt-2")
     ])
 
 def library_layout():

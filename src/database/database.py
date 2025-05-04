@@ -3,9 +3,11 @@ import sqlite3
 import datetime
 
 DB_PATH = r"C:\Users\Alexis\AppData\Local\Mixxx\mixxxdb.sqlite"
+DB_PATH_test = r"..\mixxxdb_subset.sqlite"
 
 def get_playlists():
-    conn = sqlite3.connect(DB_PATH)
+    try: conn = sqlite3.connect(DB_PATH)
+    except: conn = sqlite3.connect(DB_PATH_test)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("SELECT id, name FROM Playlists")
