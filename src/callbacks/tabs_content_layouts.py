@@ -11,9 +11,20 @@ def aggregate_layout():
     default_value = [opt["value"] for opt in options]
     
     return html.Div([
+        html.Br(),
+                dbc.Row([
+                    dbc.Col(html.H5("Filter set by date"), width=12)
+                 ]),
+                dcc.DatePickerRange(
+                    id="date-range-picker",
+                    start_date=default_start,
+                    end_date=default_end,
+                    start_date_placeholder_text="Start Date",
+                    end_date_placeholder_text="End Date"
+                ),
         dbc.Row([
             dbc.Col([
-                html.H5("Filters"),
+                html.H5("Choose set to analyze"),
                 dcc.Dropdown(
                     id="sets-dropdown",
                     options=options,
@@ -21,14 +32,6 @@ def aggregate_layout():
                     multi=True,
                     placeholder="Choose party sets"
                 ),
-                html.Br(),
-                dcc.DatePickerRange(
-                    id="date-range-picker",
-                    start_date=default_start,
-                    end_date=default_end,
-                    start_date_placeholder_text="Start Date",
-                    end_date_placeholder_text="End Date"
-                )
             ], width=12)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
@@ -55,6 +58,9 @@ def aggregate_layout():
         ]),
         html.Br(),
         dbc.Row([
+            dbc.Col(html.H5("Most played songs"), width=12)
+        ]),
+        dbc.Row([
             dbc.Col(
                 dash_table.DataTable(
                     id="played-songs-table",
@@ -76,6 +82,9 @@ def aggregate_layout():
             )
         ]),
         html.Br(),
+        dbc.Row([
+            dbc.Col(html.H5("Most played Artists"), width=12)
+        ]),
         dbc.Row([
             dbc.Col(
                 dash_table.DataTable(
