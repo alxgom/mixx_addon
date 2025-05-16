@@ -1,9 +1,11 @@
 import re
 import sqlite3
 import datetime
+import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = r"C:\Users\Alexis\AppData\Local\Mixxx\mixxxdb.sqlite"
-DB_PATH_test = r"..\mixxxdb_subset.sqlite"
+DB_PATH_test= os.path.join(BASE_DIR, 'mixxxdb_subset.sqlite')
 
 def get_playlists():
     try: conn = sqlite3.connect(DB_PATH)
