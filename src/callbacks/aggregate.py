@@ -141,9 +141,18 @@ def register_aggregate_callbacks(app):
     
         top_artists = df["artist"].value_counts().head(10).reset_index()
         top_artists.columns = ["artist", "count"]
-        bar_fig = px.bar(top_artists, x="artist", y="count", title="Top 10 Artists")
-        bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs")
-    
+        #bar_fig = px.bar(top_artists, x="artist", y="count", title="Top 10 Artists")
+        #bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs")
+
+        max_length = 15
+        top_artists["short_artist"] = top_artists["artist"].apply(lambda x: x[:max_length] + "..." if len(x) > max_length else x)
+
+        bar_fig = px.bar(top_artists, x="short_artist", y="count", title="Top 10 Artists",
+                        hover_data={'artist': True, 'short_artist': False, 'count': True}) # Show full artist on hover
+        bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs",
+                            xaxis_ticktext=top_artists["short_artist"],
+                            xaxis_tickvals=top_artists["short_artist"])
+
         box_fig = px.box(df, x="set_date", y="bpm", points="all", title="BPM Distribution by Set")
         box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM", width=1200)
     

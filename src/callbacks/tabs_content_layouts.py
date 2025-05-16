@@ -22,18 +22,20 @@ def aggregate_layout():
                     start_date_placeholder_text="Start Date",
                     end_date_placeholder_text="End Date"
                 ),
-                # ── Style toggles ──
-                dbc.Label("Style:"),
-                dbc.Checklist(
-                    id="style-filter",
-                    options=[
-                        {"label": "Blues", "value": "blues"},
-                        {"label": "Lindy", "value": "lindy"},
-                    ],
-                    value=["blues", "lindy"],
-                    inline=True,
-                    switch=True,
-                ),
+                dbc.Row([
+                    # ── Style toggles ──
+                    dbc.Label("\n Filter by set style:"),
+                    dbc.Checklist(
+                        id="style-filter",
+                        options=[
+                            {"label": "Blues", "value": "blues"},
+                            {"label": "Lindy", "value": "lindy"},
+                        ],
+                        value=["blues", "lindy"],
+                        inline=True,
+                        switch=True,
+                    ),
+                ]),
                 html.Br(),
         dbc.Row([
             dbc.Col([
@@ -78,18 +80,24 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="played-songs-table",
                     columns=[
-                        {"name": "Times Played", "id": "Times Played", "type": "numeric"},
+                        {"name": "Times\n Played", "id": "Times Played", "type": "numeric"},
                         {"name": "Song", "id": "Song"},
                         {"name": "Artist", "id": "Artist"},
-                        {"name": "Dates", "id": "Dates"},
+                        {"name": "First\n Played", "id": "Dates"},
                         {"name": "Rating", "id": "Rating"}
                     ],
                     data=[],
                     sort_action="native",
-                    page_size=40,
+                    page_size=30,
                     style_table={'overflowX': 'auto'},
                     style_cell={'textAlign': 'left', "fontSize": "14px"},
-                    style_cell_conditional=[{'if': {'column_id': 'Artist'}, 'width': '80px'}]
+                    style_cell_conditional=[
+                        {'if': {'column_id': 'Times Played'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
+                        {'if': {'column_id': 'Song'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'Artist'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'Dates'}, 'width': '120px', 'maxWidth': '150px'},
+                        {'if': {'column_id': 'Rating'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
+                    ]
                 ),
                 width=12
             )
