@@ -97,20 +97,26 @@ def register_aggregate_callbacks(app):
                     default_fig, default_fig, default_fig, [])
     
         df = pd.DataFrame(all_tracks)
+
+        # Assuming your DataFrame is called 'df' and the artist column is 'artist'
+        df['standardized_artist'] = df['artist'].apply(standardize_artist_name)
+        # Now you can group by the 'standardized_artist' column
+        #artist_counts = df.groupby('standardized_artist').size().sort_values(ascending=False).head(10).reset_index(name='count')
+        #print(artist_counts)
         #print("DataFrame head:\n", df.head())
         df["bpm"] = pd.to_numeric(df["bpm"], errors="coerce")
         df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
     
         total_songs = len(df)
         unique_songs = len(df.drop_duplicates(subset=["artist", "album", "title"]))
-        unique_artists = df["artist"].nunique()
+        unique_artists = df["standardized_artist"].nunique()
         avg_bpm = df["bpm"].mean() if not df["bpm"].isna().all() else 0
-        top_played_artist = df["artist"].value_counts().idxmax() if not df["artist"].isna().all() else "-"
+        top_played_artist = df["standardized_artist"].value_counts().idxmax() if not df["standardized_artist"].isna().all() else "-"
     
-        group_by_song = df.groupby(["artist", "title"]).size().reset_index(name="count")
+        group_by_song = df.groupby(["standardized_artist", "title"]).size().reset_index(name="count")
         if not group_by_song.empty:
             top_song_row = group_by_song.sort_values("count", ascending=False).iloc[0]
-            top_played_song = f"{top_song_row['artist']} – {top_song_row['title']} ({top_song_row['count']})"
+            top_played_song = f"{top_song_row['standardized_artist']} – {top_song_row['title']} ({top_song_row['count']})"
         else:
             top_played_song = "-"
     
@@ -139,16 +145,14 @@ def register_aggregate_callbacks(app):
         hist_fig = px.histogram(df, x="bpm", nbins=20, title="BPM Distribution")
         hist_fig.update_layout(xaxis_title="BPM", yaxis_title="Count")
     
-        top_artists = df["artist"].value_counts().head(10).reset_index()
-        top_artists.columns = ["artist", "count"]
-        #bar_fig = px.bar(top_artists, x="artist", y="count", title="Top 10 Artists")
-        #bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs")
-
+        top_artists = df["standardized_artist"].value_counts().head(10).reset_index()
+        top_artists.columns = ["standardized_artist", "count"]
+ 
         max_length = 15
-        top_artists["short_artist"] = top_artists["artist"].apply(lambda x: x[:max_length] + "..." if len(x) > max_length else x)
+        top_artists["short_artist"] = top_artists["standardized_artist"].apply(lambda x: x[:max_length] + "..." if len(x) > max_length else x)
 
         bar_fig = px.bar(top_artists, x="short_artist", y="count", title="Top 10 Artists",
-                        hover_data={'artist': True, 'short_artist': False, 'count': True}) # Show full artist on hover
+                        hover_data={"standardized_artist": True, 'short_artist': False, 'count': True}) # Show full artist on hover
         bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs",
                             xaxis_ticktext=top_artists["short_artist"],
                             xaxis_tickvals=top_artists["short_artist"])
@@ -156,14 +160,14 @@ def register_aggregate_callbacks(app):
         box_fig = px.box(df, x="set_date", y="bpm", points="all", title="BPM Distribution by Set")
         box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM", width=1200)
     
-        group_df = df.groupby(["artist", "title"]).agg(
+        group_df = df.groupby(["standardized_artist", "title"]).agg(
             times_played=("title", "size"),
             dates=("set_date", join_dates),
             rating=("rating", "max")
         ).reset_index()
-        group_df.rename(columns={"artist": "Artist", "title": "Song",
+        group_df.rename(columns={'standardized_artist':"Artists","artist": "Artist", "title": "Song",
                                   "times_played": "Times Played", "dates": "Dates", "rating": "Rating"}, inplace=True)
-        group_df = group_df[["Times Played", "Song", "Artist", "Dates", "Rating"]]
+        group_df = group_df[["Times Played", "Song", "Artists", "Dates", "Rating"]]
     
         return (total_songs_text, unique_songs_text, unique_artists_text, avg_bpm_text,
                 top_played_artist_text, top_played_song_text, avg_duration_text,
@@ -196,3 +200,34 @@ def register_aggregate_callbacks(app):
         "default_start": get_shared_data()["default_start"],
         "default_end": get_shared_data()["default_end"]
     }
+
+def standardize_artist_name(artist_string):
+    """
+    Standardizes artist names by splitting collaborations and returning a sorted,
+    comma-separated string of individual artists.
+    """
+    separators = ["/", "|", "&"]
+    artists = [artist_string]
+
+    for sep in separators:
+        new_artists = []
+        for artist in artists:
+            if sep in artist:
+                new_artists.extend([a.strip() for a in artist.split(sep)])
+            else:
+                new_artists.append(artist)
+        artists = new_artists
+
+    # Further splitting by "feat." or "vs." if needed
+    final_artists = []
+    for artist in artists:
+        if "feat." in artist:
+            final_artists.extend([a.strip() for a in artist.split("feat.")])
+        elif "vs." in artist:
+            final_artists.extend([a.strip() for a in artist.split("vs.")])
+        else:
+            final_artists.append(artist)
+
+    # Remove any empty strings and sort for consistency
+    cleaned_artists = sorted([a for a in final_artists if a])
+    return ", ".join(cleaned_artists)
