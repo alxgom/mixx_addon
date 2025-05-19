@@ -32,7 +32,6 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     scope = (
         "playlist-read-private "
         "playlist-modify-public "
-        "playlist-create-public"
     )
 
     auth_manager = SpotifyOAuth(client_id=client_id,
