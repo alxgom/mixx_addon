@@ -23,7 +23,10 @@ The dashboad consists on four tabs:
 
 - Individual Playlist: Analysis of individual sets. Which songs I played, in what order, bpm succession, etc. 
 
-- Library: Meta analysis of my whole library. How many songs do I have, how I rate them, how many artists...
+- Library: Meta analysis of my whole library. 
+
+## Online example: 
+An online example with a subset of my data can be found at https://dj-dashboard.onrender.com/
 
 ### Future ideas: 
 - Use some AI tool to parse the web and enhance my data. For example, using online data to find the players of each ensemble. First date of publication of the song. Classify songs into Big band, or small ensembles; legacy artists or modern artists, etc...  
