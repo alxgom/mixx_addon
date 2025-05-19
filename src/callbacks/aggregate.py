@@ -21,7 +21,8 @@ def register_aggregate_callbacks(app):
             dash.Output("bpm-histogram", "figure"),
             dash.Output("artist-bar-chart", "figure"),
             dash.Output("bpm-boxplot", "figure"),
-            dash.Output("played-songs-table", "data")
+            dash.Output("played-songs-table", "data"),
+            dash.Output("artist-played-table", "data")
         ],
         [
             dash.Input("style-filter", "value"), 
@@ -168,12 +169,18 @@ def register_aggregate_callbacks(app):
         group_df.rename(columns={'standardized_artist':"Artists","artist": "Artist", "title": "Song",
                                   "times_played": "Times Played", "dates": "Dates", "rating": "Rating"}, inplace=True)
         group_df = group_df[["Times Played", "Song", "Artists", "Dates", "Rating"]]
-    
+        
+        
+        top_artists = df["standardized_artist"].value_counts().reset_index()
+        top_artists.columns = ["standardized_artist", "count"]
+        #group_by_song = df.groupby(["standardized_artist", "title"]).size().reset_index(name="count")
+
+
         return (total_songs_text, unique_songs_text, unique_artists_text, avg_bpm_text,
                 top_played_artist_text, top_played_song_text, avg_duration_text,
                 fastest_song_text, slowest_song_text,
                 hist_fig, bar_fig, box_fig,
-                group_df.to_dict("records"))
+                group_df.to_dict("records"),top_artists.to_dict("records"))
     
     @app.callback(
         dash.Output("sets-dropdown", "value"),

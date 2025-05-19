@@ -117,7 +117,7 @@ def aggregate_layout():
                     ],
                     data=[],
                     sort_action="native",
-                    page_size=40,
+                    page_size=15,
                     style_table={'overflowX': 'auto'},
                     style_cell={'textAlign': 'left', "fontSize": "14px"}
                 ),
