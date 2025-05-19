@@ -3,9 +3,9 @@ from dash import dcc, dash_table
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration
 
-from spotipy import Spotify
-from spotipy.oauth2 import SpotifyOAuth
-from spotipy.oauth2 import SpotifyClientCredentials
+import json
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials,SpotifyOAuth
 
 
 def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
@@ -20,18 +20,27 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
       The URL of the newly created Spotify playlist.
     """
     # 1) Authenticate to Spotify (scopes for private playlist creation & modify)
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-    client_credentials = SpotifyClientCredentials(
-    client_id="a6bb815b933c4d7f8dfc16b138bfe72f",
-    client_secret="78a4f53693f34885b87f4cf208c8c4fc"
-    )
+    client_id = config['spotify']['client_id']
+    client_secret = config['spotify']['client_secret']
+    redirect_uri = config['spotify']['redirect_uri']
+
+    
     # Set your desired scopes
-    SCOPE = (
+    scope = (
         "playlist-read-private "
         "playlist-modify-public "
-        "playlist-modify-private"
+        "playlist-create-public"
     )
-    sp = Spotify(auth_manager=client_credentials)
+
+    auth_manager = SpotifyOAuth(client_id=client_id,
+                           client_secret=client_secret,
+                           redirect_uri=redirect_uri,
+                           scope=scope)
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+
         # SpotifyOAuth will read CLIENT_ID, CLIENT_SECRET, REDIRECT_URI from env by default
     
 

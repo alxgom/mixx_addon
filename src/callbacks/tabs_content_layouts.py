@@ -195,6 +195,9 @@ def library_layout():
                 {"name": "Album", "id": "album"},
                 {"name": "Rating", "id": "rating"}
             ],
-            data=[]
+            data=[],
+            page_size=30,
+            style_table={'overflowX': 'auto'},
+            style_cell={'textAlign': 'left', "fontSize": "14px"}
         )
     ])
