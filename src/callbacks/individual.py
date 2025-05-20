@@ -26,7 +26,7 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     client_id = config['spotify']['client_id']
     client_secret = config['spotify']['client_secret']
     redirect_uri = config['spotify']['redirect_uri']
-
+    username = config['spotify']['usr_name']
     
     # Set your desired scopes
     scope = (
@@ -37,12 +37,11 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     auth_manager = SpotifyOAuth(client_id=client_id,
                            client_secret=client_secret,
                            redirect_uri=redirect_uri,
+                           username=username,
                            scope=scope)
     sp = spotipy.Spotify(auth_manager=auth_manager)
-
+    user_id = sp.me()['id']
         # SpotifyOAuth will read CLIENT_ID, CLIENT_SECRET, REDIRECT_URI from env by default
-    
-
     # 2) Fetch tracks from Mixxx
     mixxx_tracks = get_tracks_for_playlist(mixxx_playlist_id)
 
@@ -63,18 +62,19 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     #    (you could also embed the date or original name here)
     playlist_name = f"Mixxx Set {mixxx_playlist_id}"
     playlist = sp.user_playlist_create(
-        user="11127699528",
+        user=user_id,
         name=playlist_name,
         public=True,
         description="Imported from Mixxx"
     )
-
+    logging.info(f"Successfully created playlist: {playlist_name} with ID: {playlist['id']}")
+    return playlist['id']   
     # 5) Add tracks to the new playlist in batches of 100
-    for i in range(0, len(track_uris), 100):
-        batch = track_uris[i:i+100]
-        sp.playlist_add_items(playlist_id=playlist["id"], items=batch)
+    #for i in range(0, len(track_uris), 100):
+    #    batch = track_uris[i:i+100]
+    #    sp.playlist_add_items(playlist_id=playlist["id"], items=batch)
 
-    return playlist["external_urls"]["spotify"]
+    #return playlist["external_urls"]["spotify"]
 
 
 def register_individual_callbacks(app):

@@ -9,7 +9,8 @@ def get_layout(party_set_options, default_start, default_end):
                 dbc.Tab(label="Aggregate Playlists", tab_id="aggregate"),
                 dbc.Tab(label="Crate Analysis", tab_id="crates"),
                 dbc.Tab(label="Individual Playlists", tab_id="individual"),
-                dbc.Tab(label="Library", tab_id="library")
+                dbc.Tab(label="Library", tab_id="library"),
+                dbc.Tab(label="Songs", tab_id="song_exploration")
             ],
             id="tabs",
             active_tab="aggregate"

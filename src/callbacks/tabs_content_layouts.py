@@ -82,8 +82,8 @@ def aggregate_layout():
                     columns=[
                         {"name": "Times\n Played", "id": "Times Played", "type": "numeric"},
                         {"name": "Song", "id": "Song"},
-                        {"name": "Artist", "id": "Artist"},
-                        {"name": "First\n Played", "id": "Dates"},
+                        {"name": "Artists", "id": "Artists"},
+                        {"name": "Dates\n Played", "id": "Dates"},
                         {"name": "Rating", "id": "Rating"}
                     ],
                     data=[],
@@ -94,7 +94,7 @@ def aggregate_layout():
                     style_cell_conditional=[
                         {'if': {'column_id': 'Times Played'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
                         {'if': {'column_id': 'Song'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                        {'if': {'column_id': 'Artist'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'Artists'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'Dates'}, 'width': '120px', 'maxWidth': '150px'},
                         {'if': {'column_id': 'Rating'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
                     ]
@@ -111,7 +111,7 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="artist-played-table",
                     columns=[
-                        {"name": "Artist", "id": "Artist"},
+                        {"name": "Artists", "id": "Artists"},
                         {"name": "Times Played", "id": "Times Played", "type": "numeric"},
                         {"name": "Songs Count", "id": "Songs Count", "type": "numeric"}
                     ],
@@ -132,7 +132,7 @@ def aggregate_layout():
             dbc.Col(
                 dash_table.DataTable(
                     id="unplayed-artists-table",
-                    columns=[{"name": "Artist", "id": "Artist"}],
+                    columns=[{"name": "Artists", "id": "Artists"}],
                     data=[],
                     sort_action="native",
                     page_size=40,
