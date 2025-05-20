@@ -104,7 +104,7 @@ def register_individual_callbacks(app):
         if not tracks:
             return {}
         df = pd.DataFrame(tracks)
-        df["bpm"] = pd.to_numeric(df["bpm"], errors="coerce")
+        df["bpm"] = pd.to_numeric(df["bpm"].abs(), downcast='signed', errors="coerce")#why thi no work!
         df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
         df = df.sort_values("position")
         df["cumulative_time"] = df["duration"].cumsum() / 60.0

@@ -111,17 +111,22 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="artist-played-table",
                     columns=[
-                        {"name": "Artists", "id": "Artists"},
-                        {"name": "Times Played", "id": "Times Played", "type": "numeric"},
-                        {"name": "Songs Count", "id": "Songs Count", "type": "numeric"}
+                        {"name": "Artists", "id": "standardized_artist"},
+                        {"name": "Times Played", "id": "count", "type": "numeric"},
+                        {"name": "Songs Count", "id": "played_songs_per_artist", "type": "numeric"}
                     ],
                     data=[],
                     sort_action="native",
                     page_size=15,
                     style_table={'overflowX': 'auto'},
-                    style_cell={'textAlign': 'left', "fontSize": "14px"}
-                ),
-                width=12
+                    style_cell={'textAlign': 'left', "fontSize": "14px"},
+                    style_cell_conditional=[
+                        {'if': {'column_id': 'standardized_artist'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'count'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'},
+                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'}
+                ],
+                style_as_list_view=True,
+                )
             )
         ]),
         html.Br(),
@@ -168,10 +173,24 @@ def individual_layout():
                 {"name": "Artist", "id": "artist"},
                 {"name": "Title", "id": "title"},
                 {"name": "Album", "id": "album"},
-                {"name": "BPM", "id": "bpm"},
-                {"name": "Duration", "id": "duration"}
+                {"name": "BPM", "id": "bpm", "type":"numeric"},
+                {"name": "Duration", "id": "duration", "type":"numeric"}
             ],
-            data=[]
+            data=[],
+            style_table={'overflowX': 'auto'},
+            style_cell={'textAlign': 'left', "fontSize": "14px"},
+            style_cell_conditional=[
+                {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
+                {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                {'if': {'column_id': 'bpm'}, 'width': '20px', 'maxWidth': '40px'},
+                {'if': {'column_id': 'duration'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
+            ],
+        style_header={
+        'backgroundColor': 'rgb(210, 210, 210)',
+        'color': 'black',
+        'fontWeight': 'bold'
+        }
         ),
         dcc.Graph(id="individual-playlist-cumulative-plot"),
 
@@ -200,4 +219,11 @@ def library_layout():
             style_table={'overflowX': 'auto'},
             style_cell={'textAlign': 'left', "fontSize": "14px"}
         )
+    ])
+
+def songs_layout():
+    return html.Div([
+        html.H3("Songs research"),
+        # Add crate-related components here.
+        html.Div("A tab where I ran research my songs.")
     ])

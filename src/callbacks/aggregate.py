@@ -170,12 +170,26 @@ def register_aggregate_callbacks(app):
                                   "times_played": "Times Played", "dates": "Dates", "rating": "Rating"}, inplace=True)
         group_df = group_df[["Times Played", "Song", "Artists", "Dates", "Rating"]]
         
-        
+        played_songs_per_artist = df.groupby('standardized_artist')['title'].nunique().reset_index()
+        played_songs_per_artist.rename(columns={'title': 'played_songs_per_artist'}, inplace=True)
+
         top_artists = df["standardized_artist"].value_counts().reset_index()
         top_artists.columns = ["standardized_artist", "count"]
+        top_artists = top_artists.merge(played_songs_per_artist, on='standardized_artist', how='left')
         #group_by_song = df.groupby(["standardized_artist", "title"]).size().reset_index(name="count")
+        #print(top_artists.head())
+        # Assuming 'df' is your DataFrame with 'standardized_artist' and 'title' columns
+        song_lists = df.groupby('standardized_artist')['title'].apply(lambda titles: ', '.join(sorted(set(titles)))).reset_index()
+        song_lists.rename(columns={'title': 'song_list'}, inplace=True)
+        # Merge the song lists with your top_artists DataFrame
+        top_artists = top_artists.merge(song_lists, on='standardized_artist', how='left')
 
-
+        tooltip_data = [
+            {
+                'standardized_artist': {'value': row['song_list'], 'type': 'text'}
+            } for _, row in top_artists.iterrows()
+        ]
+        
         return (total_songs_text, unique_songs_text, unique_artists_text, avg_bpm_text,
                 top_played_artist_text, top_played_song_text, avg_duration_text,
                 fastest_song_text, slowest_song_text,
