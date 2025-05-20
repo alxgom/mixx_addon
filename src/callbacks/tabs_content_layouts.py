@@ -214,11 +214,19 @@ def library_layout():
                 {"name": "Album", "id": "album"},
                 {"name": "Rating", "id": "rating"}
             ],
+            sort_action="native",
             data=[],
-            page_size=30,
+            page_size=25,
             style_table={'overflowX': 'auto'},
-            style_cell={'textAlign': 'left', "fontSize": "14px"}
-        )
+            style_cell={'textAlign': 'left', "fontSize": "14px"},
+            style_cell_conditional=[
+                {'if': {'column_id': 'id'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'left'},
+                {'if': {'column_id': 'rating'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'center'},
+                {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
+                {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
+            ]
+       )
     ])
 
 def songs_layout():
