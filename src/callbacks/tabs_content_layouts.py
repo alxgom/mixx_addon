@@ -13,7 +13,7 @@ def aggregate_layout():
     return html.Div([
         html.Br(),
                 dbc.Row([
-                    dbc.Col(html.H5("Filter set by date"), width=12)
+                    dbc.Col(html.H3("Filter set by date"), width=12)
                  ]),
                 dcc.DatePickerRange(
                     id="date-range-picker",
@@ -50,12 +50,12 @@ def aggregate_layout():
             ], width=12)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
-            dbc.Col(dbc.Card(html.H6(id="total-songs", children="Total Songs: 0"), body=True), width=6, className="mb-2"),
-            dbc.Col(dbc.Card(html.H6(id="avg-duration", children="Avg Duration: 0"), body=True), width=6)
+            dbc.Col(dbc.Card(html.H5(id="total-songs", children="Total Songs: 0",className="text-center"), body=True), width=6, className="mb-2"),
+            dbc.Col(dbc.Card(html.H5(id="avg-duration", children="Avg Duration: 0",className="text-center"), body=True), width=6)
         ], style={"marginBottom": "10px"}),
         dbc.Row([
-            dbc.Col(dbc.Card(html.H6(id="unique-songs", children="Unique Songs: 0"), body=True), width=6, className="mb-2"),
-            dbc.Col(dbc.Card(html.H6(id="unique-artists", children="Unique Artists: 0"), body=True), width=6)
+            dbc.Col(dbc.Card(html.H5(id="unique-songs", children="Unique Songs: 0",className="text-center"), body=True), width=6, className="mb-2"),
+            dbc.Col(dbc.Card(html.H5(id="unique-artists", children="Unique Artists: 0",className="text-center"), body=True), width=6)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
             dbc.Col([
@@ -68,12 +68,12 @@ def aggregate_layout():
             ], md=8,sm=12)
         ]),
         dbc.Row([
-            dbc.Col(dcc.Graph(id="bpm-boxplot"))
+            dbc.Col(dcc.Graph(id="bpm-boxplot"),sm=12)
         ]),
         html.Br(),
         dbc.Row([
-            dbc.Col(html.H5("Most played songs"), width=12),
-            dbc.Col(dbc.Card(html.H5(id="top-played-song", children="Top Played Song: -"), body=True), width=12)
+            dbc.Col(html.H4("Most played songs",className="text-center"), width=12),
+            dbc.Col(dbc.Card(html.H4(id="top-played-song", children="Top Played Song: -"), body=True), width=12)
         ], style={"marginTop": "20px"}),
         dbc.Row([           
             dbc.Col(
@@ -126,11 +126,11 @@ def aggregate_layout():
         ]),
         html.Br(),
         dbc.Row([
-            dbc.Col(html.H5("Most played Artists"), width=12),
-            dbc.Col(dbc.Card(html.H5(id="top-played-artist", children="Top Played Artist: -"), body=True), width=12)
+            dbc.Col(html.H4("Most played Artists",className="text-center"), width=12),
+            dbc.Col(dbc.Card(html.H4(id="top-played-artist", children="Top Played Artist: -"), body=True), width=12)
         ], style={"marginTop": "20px"}),
         dbc.Row([          
-            dbc.Col(dcc.Graph(id="artist-bar-chart"), width=6),
+            dbc.Col(dcc.Graph(id="artist-bar-chart"), md=6,sm=12),
             dbc.Col(
                 dash_table.DataTable(
                     id="artist-played-table",
@@ -172,8 +172,8 @@ def aggregate_layout():
                     "padding": "8px",
                     "border": "none"
                 }
-                )
-            )
+                ),
+            md=6,sm=12)
         ]),
         html.Br(),
         dbc.Row([
