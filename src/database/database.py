@@ -107,11 +107,11 @@ def get_library_songs():
     conn = sqlite3.connect(dbpath)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    query_with_hidden = "SELECT id, artist, title, album, rating FROM library WHERE hidden = 0"
+    query_with_hidden = "SELECT id, artist, title, album, bpm, rating FROM library WHERE hidden = 0"
     try:
         cur.execute(query_with_hidden)
     except sqlite3.OperationalError:
-        cur.execute("SELECT id, artist, title, album, rating FROM library")
+        cur.execute("SELECT id, artist, title, album, bpm, rating FROM library")
     songs = cur.fetchall()
     conn.close()
     return [dict(song) for song in songs]

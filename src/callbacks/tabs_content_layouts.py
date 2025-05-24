@@ -87,17 +87,39 @@ def aggregate_layout():
                         {"name": "Rating", "id": "Rating"}
                     ],
                     data=[],
+                    sort_by=[{'column_id': 'Times Played', 'direction': 'desc'}],
                     sort_action="native",
                     page_size=30,
-                    style_table={'overflowX': 'auto'},
-                    style_cell={'textAlign': 'left', "fontSize": "14px"},
+                    virtualization=True,
+                    fixed_rows={'headers': True},
                     style_cell_conditional=[
                         {'if': {'column_id': 'Times Played'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
                         {'if': {'column_id': 'Song'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'Artists'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'Dates'}, 'width': '120px', 'maxWidth': '150px'},
                         {'if': {'column_id': 'Rating'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
-                    ]
+                    ],
+                style_table={
+                    'height': 800,
+                    'overflowX': 'auto',    
+                    "border": "1px solid #CBA135",
+                    "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                },
+                style_header={
+                    "backgroundColor": "#FFFDF8",
+                    "fontWeight": "bold",
+                    "fontFamily": "Raleway",
+                    "color": "#2C3E50"
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    "fontSize": "14px",
+                    "fontFamily": "Quicksand",
+                    "backgroundColor": "#F6F1EB",
+                    "color": "#3A3A3A",
+                    "padding": "8px",
+                    "border": "none"
+                }
                 ),
                 width=12
             )
@@ -116,16 +138,38 @@ def aggregate_layout():
                         {"name": "Songs Count", "id": "played_songs_per_artist", "type": "numeric"}
                     ],
                     data=[],
+                    sort_by=[{'column_id': 'count', 'direction': 'desc'}],
                     sort_action="native",
-                    page_size=15,
-                    style_table={'overflowX': 'auto'},
-                    style_cell={'textAlign': 'left', "fontSize": "14px"},
+                    page_size=40,
+                    virtualization=True,
+                    fixed_rows={'headers': True},
                     style_cell_conditional=[
                         {'if': {'column_id': 'standardized_artist'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'count'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'},
                         {'if': {'column_id': 'played_songs_per_artist'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'}
                 ],
                 style_as_list_view=True,
+                style_table={
+                    'height': 600,
+                    'overflowX': 'auto',    
+                    "border": "1px solid #CBA135",
+                    "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                },
+                style_header={
+                    "backgroundColor": "#FFFDF8",
+                    "fontWeight": "bold",
+                    "fontFamily": "Raleway",
+                    "color": "#2C3E50"
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    "fontSize": "14px",
+                    "fontFamily": "Quicksand",
+                    "backgroundColor": "#F6F1EB",
+                    "color": "#3A3A3A",
+                    "padding": "8px",
+                    "border": "none"
+                }
                 )
             )
         ]),
@@ -185,7 +229,7 @@ def individual_layout():
                 {'if': {'column_id': 'duration'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
             ],
             style_table={
-            'height': 400,
+            'height': 600,
             'overflowX': 'auto',    
             "border": "1px solid #CBA135",
             "boxShadow": "0 2px 6px rgba(0,0,0,0.1)",
@@ -227,14 +271,15 @@ def library_layout():
                 {"name": "Title", "id": "title"},
                 {"name": "Artist", "id": "artist"},
                 {"name": "Album", "id": "album"},
-                {"name": "BPM", "id": "bpm", "type": "numeric"},
+                {"name": "BPM", "id": "bpm", "type":"numeric", "format":Format(precision=2, scheme=Scheme.decimal_integer)},
                 {"name": "Rating", "id": "rating", "type": "numeric"}
             ],
             sort_action="native",
+            filter_action="native",
             data=[],
             virtualization=True,
             fixed_rows={'headers': True},
-            page_size=25,
+            page_size=200,
             style_cell_conditional=[
                 {'if': {'column_id': 'rating'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
                 {'if': {'column_id': 'bpm'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
@@ -243,7 +288,8 @@ def library_layout():
                 {'if': {'column_id': 'album'}, 'width': '80px', 'maxWidth': '100px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
             ],
             style_table={
-            'height': 400,
+            'height': 600,
+            "margin-top": "1em",
             'overflowX': 'auto',    
             "border": "1px solid #CBA135",
             "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
