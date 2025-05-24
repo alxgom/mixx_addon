@@ -50,11 +50,11 @@ def aggregate_layout():
             ], width=12)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
-            dbc.Col(dbc.Card(html.H6(id="total-songs", children="Total Songs: 0"), body=True), width=6),
+            dbc.Col(dbc.Card(html.H6(id="total-songs", children="Total Songs: 0"), body=True), width=6, className="mb-2"),
             dbc.Col(dbc.Card(html.H6(id="avg-duration", children="Avg Duration: 0"), body=True), width=6)
         ], style={"marginBottom": "10px"}),
         dbc.Row([
-            dbc.Col(dbc.Card(html.H6(id="unique-songs", children="Unique Songs: 0"), body=True), width=6),
+            dbc.Col(dbc.Card(html.H6(id="unique-songs", children="Unique Songs: 0"), body=True), width=6, className="mb-2"),
             dbc.Col(dbc.Card(html.H6(id="unique-artists", children="Unique Artists: 0"), body=True), width=6)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
@@ -62,13 +62,13 @@ def aggregate_layout():
                 dbc.Row(dbc.Card(html.H6(id="avg-bpm", children="Avg BPM: 0"), body=True), className="mb-2"),
                 dbc.Row(dbc.Card(html.H6(id="fastest-song", children="Fastest Song: -"), body=True), className="mb-2"),
                 dbc.Row(dbc.Card(html.H6(id="slowest-song", children="Slowest Song: -"), body=True))
-            ], width=4),
+            ], md=4,sm=12),
             dbc.Col([
                 dbc.Row(dcc.Graph(id="bpm-histogram"))
-            ], width=8)
+            ], md=8,sm=12)
         ]),
         dbc.Row([
-            dbc.Col(dcc.Graph(id="bpm-boxplot"), width=12)
+            dbc.Col(dcc.Graph(id="bpm-boxplot"))
         ]),
         html.Br(),
         dbc.Row([
