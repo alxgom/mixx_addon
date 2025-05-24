@@ -5,6 +5,9 @@ import plotly.express as px
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration, join_dates
 from src.callbacks.shared import get_shared_data
+from src.callbacks.plotly_template import register_swing_theme
+
+register_swing_theme()  # register and set as default
 
 def register_aggregate_callbacks(app):
     @app.callback(

@@ -1,7 +1,7 @@
-from dash import html, dcc, dash_table
+from dash import html, dcc, dash_table,Input, Output
 import dash_bootstrap_components as dbc
 from src.callbacks.shared import get_shared_data
-
+from dash.dash_table.Format import Format, Scheme, Trim
 def aggregate_layout():
     shared = get_shared_data()
     default_start = shared["default_start"]
@@ -63,11 +63,11 @@ def aggregate_layout():
             dbc.Col(dbc.Card(html.H6(id="avg-duration", children="Avg Duration: 0"), body=True), width=4),
             dbc.Col(dbc.Card(html.H6(id="fastest-song", children="Fastest Song: -"), body=True), width=4),
             dbc.Col(dbc.Card(html.H6(id="slowest-song", children="Slowest Song: -"), body=True), width=4)
-        ]),
+        ], style={"marginBottom": "10px"}),
         dbc.Row([
             dbc.Col(dcc.Graph(id="bpm-histogram"), width=6),
             dbc.Col(dcc.Graph(id="artist-bar-chart"), width=6)
-        ]),
+        ], style={"marginBottom": "10px"}),
         dbc.Row([
             dbc.Col(dcc.Graph(id="bpm-boxplot"), width=12)
         ]),
@@ -170,26 +170,42 @@ def individual_layout():
         dash_table.DataTable(
             id="individual-playlist-table",
             columns=[
-                {"name": "Artist", "id": "artist"},
                 {"name": "Title", "id": "title"},
+                {"name": "Artist", "id": "artist"},
                 {"name": "Album", "id": "album"},
-                {"name": "BPM", "id": "bpm", "type":"numeric"},
+                {"name": "BPM", "id": "bpm", "type":"numeric", "format":Format(precision=2, scheme=Scheme.decimal_integer)},
                 {"name": "Duration", "id": "duration", "type":"numeric"}
             ],
             data=[],
-            style_table={'overflowX': 'auto'},
-            style_cell={'textAlign': 'left', "fontSize": "14px"},
             style_cell_conditional=[
                 {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
                 {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                 {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                {'if': {'column_id': 'bpm'}, 'width': '20px', 'maxWidth': '40px'},
+                {'if': {'column_id': 'bpm'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
                 {'if': {'column_id': 'duration'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
             ],
+            style_table={
+            'height': 400,
+            'overflowX': 'auto',    
+            "border": "1px solid #CBA135",
+            "boxShadow": "0 2px 6px rgba(0,0,0,0.1)",
+            "margin-top": "1em",
+            "margin-bottom": "10px"
+        },
         style_header={
-        'backgroundColor': 'rgb(210, 210, 210)',
-        'color': 'black',
-        'fontWeight': 'bold'
+            "backgroundColor": "#FFFDF8",
+            "fontWeight": "bold",
+            "fontFamily": "Raleway",
+            "color": "#2C3E50"
+        },
+        style_cell={
+            'textAlign': 'left',
+            "fontSize": "14px",
+            "fontFamily": "Quicksand",
+            "backgroundColor": "#F6F1EB",
+            "color": "#3A3A3A",
+            "padding": "8px",
+            "border": "none"
         }
         ),
         dcc.Graph(id="individual-playlist-cumulative-plot"),
@@ -208,25 +224,27 @@ def library_layout():
         dash_table.DataTable(
             id="library-table",
             columns=[
-                {"name": "ID", "id": "id"},
-                {"name": "Artist", "id": "artist"},
                 {"name": "Title", "id": "title"},
+                {"name": "Artist", "id": "artist"},
                 {"name": "Album", "id": "album"},
-                {"name": "Rating", "id": "rating"}
+                {"name": "BPM", "id": "bpm", "type": "numeric"},
+                {"name": "Rating", "id": "rating", "type": "numeric"}
             ],
             sort_action="native",
             data=[],
+            virtualization=True,
+            fixed_rows={'headers': True},
             page_size=25,
             style_cell_conditional=[
-                {'if': {'column_id': 'id'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'left'},
-                {'if': {'column_id': 'rating'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'center'},
+                {'if': {'column_id': 'rating'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
+                {'if': {'column_id': 'bpm'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
                 {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
                 {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
+                {'if': {'column_id': 'album'}, 'width': '80px', 'maxWidth': '100px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
             ],
             style_table={
+            'height': 400,
             'overflowX': 'auto',    
-            "margin": "2rem",
             "border": "1px solid #CBA135",
             "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
         },
@@ -251,6 +269,23 @@ def library_layout():
 def songs_layout():
     return html.Div([
         html.H3("Songs research"),
+        html.H2("Song Search Tool"),
         # Add crate-related components here.
-        html.Div("A tab where I ran research my songs.")
+        html.Div("A tab where I ran research my songs."),
+        dcc.Input(
+        id='search-input',
+        type='text',
+        placeholder='Search by song or artist...',
+        debounce=True,  # triggers update only when user stops typing
+        style={'width': '100%', 'padding': '10px', 'fontSize': '16px'}
+    ),
+    dash_table.DataTable(
+        id='results-table',
+        columns=[
+            {'name': col, 'id': col} for col in df.columns
+        ],
+        data=[],
+        style_table={'overflowX': 'auto'},
+        page_size=10,
+    )
     ])

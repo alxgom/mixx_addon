@@ -3,6 +3,8 @@ from .crates import register_crates_callbacks
 from .individual import register_individual_callbacks
 from .library import register_library_callbacks
 from .tabs_content import register_tabs_callbacks
+from .songs import register_songs_callbacks
+from .plotly_template import register_swing_theme
 from .shared import get_shared_data
 #from .spot import export_mixxx_to_spotif
 
@@ -18,3 +20,5 @@ def register_callbacks(app):
     register_crates_callbacks(app)
     register_individual_callbacks(app)
     register_library_callbacks(app)
+    register_songs_callbacks(app)
+
