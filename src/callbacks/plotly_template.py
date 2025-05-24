@@ -4,8 +4,8 @@ import plotly.io as pio
 def register_swing_theme():
     custom_template = dict(
         layout=dict(
-            paper_bgcolor="#F6F1EB",  # Matches your Dash body background
-            plot_bgcolor="#F6F1EB",   # Matches your card background
+            paper_bgcolor="rgba(1,1,1,0.01)",  # Matches your Dash body background
+            plot_bgcolor="rgba(0,0,0,0)",   # Matches your card background
             font=dict(
                 family="Quicksand",
                 color="#3A3A3A"
