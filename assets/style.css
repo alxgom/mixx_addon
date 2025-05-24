@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand&family=Raleway:wght@700&family=Great+Vibes&display=swap');
+
+body {
+  background-color: #F6F1EB;
+  background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+  font-family: 'Quicksand', sans-serif;
+  color: #3A3A3A;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3 {
+  font-family: 'Raleway', sans-serif;
+  color: #2C3E50;
+}
+
+.header-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.5rem;
+  color: #CBA135;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.card {
+  background-color: #FFFDF8;
+  border: 1px solid #CBA135;
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}

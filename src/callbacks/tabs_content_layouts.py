@@ -217,16 +217,35 @@ def library_layout():
             sort_action="native",
             data=[],
             page_size=25,
-            style_table={'overflowX': 'auto'},
-            style_cell={'textAlign': 'left', "fontSize": "14px"},
             style_cell_conditional=[
                 {'if': {'column_id': 'id'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'left'},
                 {'if': {'column_id': 'rating'}, 'width': '30px', 'maxWidth': '90px','textAlign': 'center'},
                 {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
                 {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                 {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
-            ]
-       )
+            ],
+            style_table={
+            'overflowX': 'auto',    
+            "margin": "2rem",
+            "border": "1px solid #CBA135",
+            "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+        },
+        style_header={
+            "backgroundColor": "#FFFDF8",
+            "fontWeight": "bold",
+            "fontFamily": "Raleway",
+            "color": "#2C3E50"
+        },
+        style_cell={
+            'textAlign': 'left',
+            "fontSize": "14px",
+            "fontFamily": "Quicksand",
+            "backgroundColor": "#F6F1EB",
+            "color": "#3A3A3A",
+            "padding": "8px",
+            "border": "none"
+        }
+       )  
     ])
 
 def songs_layout():
