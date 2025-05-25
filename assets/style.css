@@ -31,14 +31,17 @@ h1, h2, h3 {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* Targeting the filter row */
-.dash-spreadsheet-container .dash-filter-row {
-    background-color: #34290d !important; /* Added !important */
+
+
+.dash-filter {
+    background-color: #eeeae4!important; /* A light grey background for the filter row */
+    border-bottom: 49px solid #cd1111!important; /* Add a bottom border for separation */
 }
+
 .banner-container {
   position: relative;
   width: 100%;
-  height: 25vh;
+  height: 20vh;
   min-height: 120px;
   max-height: 220px;
   overflow: hidden;
@@ -61,7 +64,7 @@ h1, h2, h3 {
   width: 100%;
   text-align: center;
   padding: 0.5rem 1rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); /* optional fade effect */
+  background: linear-gradient(to top, rgba(0,0,0,0.2), transparent); /* optional fade effect */
   z-index: 1;
 }
 
@@ -75,7 +78,7 @@ h1, h2, h3 {
 
 @media (max-width: 600px) {
   .dashboard-title {
-    font-size: 6vw;
+    font-size: 8vw;
   }
 }.title-orange { color: #F2943C; font-weight: bold; }
 .title-pink   { color: #D986A9; font-weight: bold; }
