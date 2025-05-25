@@ -129,9 +129,9 @@ def register_aggregate_callbacks(app):
     
         if not df["bpm"].isna().all():
             fastest_song_row = df.loc[df["bpm"].idxmax()]
-            slowest_song_row = df.loc[df["bpm"].idxmin()]
-            fastest_song = f"{fastest_song_row['artist']} – {fastest_song_row['title']} ({fastest_song_row['bpm']:.1f} BPM)"
-            slowest_song = f"{slowest_song_row['artist']} – {slowest_song_row['title']} ({slowest_song_row['bpm']:.1f} BPM)"
+            slowest_song_row = df.loc[df["bpm"].idxmin()]  
+            fastest_song = f"({fastest_song_row['bpm']:.1f} BPM)  \n *{fastest_song_row['title']}*  \n {fastest_song_row['artist']}   "
+            slowest_song = f"({slowest_song_row['bpm']:.1f} BPM)  \n *{slowest_song_row['title']}*  \n {slowest_song_row['artist']} "
         else:
             fastest_song = "-"
             slowest_song = "-"
@@ -143,8 +143,8 @@ def register_aggregate_callbacks(app):
         top_played_artist_text = f"Top Played Artist: {top_played_artist}"
         top_played_song_text = f"Top Played Song: {top_played_song}"
         avg_duration_text = f"Avg Duration: {avg_duration}"
-        fastest_song_text = f"Fastest Song: {fastest_song}"
-        slowest_song_text = f"Slowest Song: {slowest_song}"
+        fastest_song_text = f"**Fastest Song:** {fastest_song}"
+        slowest_song_text = f"**Slowest Song:** {slowest_song}"
     
         hist_fig = px.histogram(df, x="bpm", nbins=20, title="BPM Distribution")
         hist_fig.update_layout(xaxis_title="BPM", yaxis_title="Count")
@@ -156,13 +156,16 @@ def register_aggregate_callbacks(app):
         top_artists["short_artist"] = top_artists["standardized_artist"].apply(lambda x: x[:max_length] + "..." if len(x) > max_length else x)
 
         bar_fig = px.bar(top_artists, x="short_artist", y="count", title="Top 10 Artists",
-                        hover_data={"standardized_artist": True, 'short_artist': False, 'count': True}) # Show full artist on hover
+                        color="count",  # <--- This is the key change!
+                        color_continuous_scale=['#FFFDF8', '#CBA135'])  # Custom color scale                        hover_data={"standardized_artist": True, 'short_artist': False, 'count': True}) # Show full artist on hover
         bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs",
                             xaxis_ticktext=top_artists["short_artist"],
                             xaxis_tickvals=top_artists["short_artist"])
-
+        bar_fig.update_layout(coloraxis_cmax=top_artists['count'].max(),coloraxis_cmin=0,
+                            coloraxis_showscale=False) # Set the minimum value for the color axis to 0
+        
         box_fig = px.box(df, x="set_date", y="bpm", points="all", title="BPM Distribution by Set")
-        box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM", width=1200)
+        box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM")
     
         group_df = df.groupby(["standardized_artist", "title"]).agg(
             times_played=("title", "size"),

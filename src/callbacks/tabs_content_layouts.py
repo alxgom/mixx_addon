@@ -60,8 +60,8 @@ def aggregate_layout():
         dbc.Row([
             dbc.Col([
                 dbc.Row(dbc.Card(html.H6(id="avg-bpm", children="Avg BPM: 0"), body=True), className="mb-2"),
-                dbc.Row(dbc.Card(html.H6(id="fastest-song", children="Fastest Song: -"), body=True), className="mb-2"),
-                dbc.Row(dbc.Card(html.H6(id="slowest-song", children="Slowest Song: -"), body=True))
+                dbc.Row(dbc.Card(dcc.Markdown(id="fastest-song"), body=True), className="mb-2"),# Initial empty dcc.Markdown
+            dbc.Row(dbc.Card(dcc.Markdown(id="slowest-song"), body=True))
             ], md=4,sm=12),
             dbc.Col([
                 dbc.Row(dcc.Graph(id="bpm-histogram"))
@@ -146,9 +146,9 @@ def aggregate_layout():
                     virtualization=True,
                     fixed_rows={'headers': True},
                     style_cell_conditional=[
-                        {'if': {'column_id': 'standardized_artist'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                        {'if': {'column_id': 'count'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'},
-                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '50px', 'maxWidth': '50px','textAlign': 'center'}
+                        {'if': {'column_id': 'standardized_artist'}, 'width': '140px', 'maxWidth': '160px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'count'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
+                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'}
                 ],
                 style_as_list_view=True,
                 style_table={
