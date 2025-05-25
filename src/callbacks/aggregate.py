@@ -158,7 +158,7 @@ def register_aggregate_callbacks(app):
         bar_fig = px.bar(top_artists, x="short_artist", y="count", title="Top 10 Artists",
                         color="count",  # <--- This is the key change!
                         color_continuous_scale=['#FFFDF8', '#CBA135'])  # Custom color scale                        hover_data={"standardized_artist": True, 'short_artist': False, 'count': True}) # Show full artist on hover
-        bar_fig.update_layout(xaxis_title="Artist", yaxis_title="Number of Songs",
+        bar_fig.update_layout(xaxis_title="", yaxis_title="Number of Songs",
                             xaxis_ticktext=top_artists["short_artist"],
                             xaxis_tickvals=top_artists["short_artist"])
         bar_fig.update_layout(coloraxis_cmax=top_artists['count'].max(),coloraxis_cmin=0,

@@ -30,3 +30,8 @@ h1, h2, h3 {
   margin: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
+/* Targeting the filter row */
+.dash-spreadsheet-container .dash-filter-row {
+    background-color: #34290d !important; /* Added !important */
+}

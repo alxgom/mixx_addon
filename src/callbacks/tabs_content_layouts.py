@@ -12,20 +12,23 @@ def aggregate_layout():
     
     return html.Div([
         html.Br(),
+        dbc.Row([
+                dbc.Col(html.H1("Analyze party set",className="text-center"), md=12, sm=12)
+                ], style={"marginBottom": "40px","marginTop": "40px"}),
                 dbc.Row([
-                    dbc.Col(html.H3("Filter set by date"), width=12)
-                 ]),
-                dcc.DatePickerRange(
+                    dbc.Col(html.H3("Filter set by date"), md=3, sm=3),
+                dbc.Col(dcc.DatePickerRange(
                     id="date-range-picker",
                     start_date=default_start,
                     end_date=default_end,
                     start_date_placeholder_text="Start Date",
                     end_date_placeholder_text="End Date"
-                ),
+                ),md=4, sm=4),
+                ]),
                 dbc.Row([
                     # ── Style toggles ──
-                    dbc.Label("\n Filter by set style:"),
-                    dbc.Checklist(
+                    dbc.Col(html.H4("\n Filter by set style"), md=3, sm=3),
+                    dbc.Col(dbc.Checklist(
                         id="style-filter",
                         options=[
                             {"label": "Blues", "value": "blues"},
@@ -34,12 +37,13 @@ def aggregate_layout():
                         value=["blues", "lindy"],
                         inline=True,
                         switch=True,
+                    ), md=4, sm=4
                     ),
                 ]),
                 html.Br(),
         dbc.Row([
             dbc.Col([
-                html.H5("Choose set to analyze"),
+                html.H4("Filter by sets"),
                 dcc.Dropdown(
                     id="sets-dropdown",
                     options=options,
@@ -89,6 +93,7 @@ def aggregate_layout():
                     data=[],
                     sort_by=[{'column_id': 'Times Played', 'direction': 'desc'}],
                     sort_action="native",
+                    filter_options={"case": "insensitive"},  # Set case-insensitive filtering
                     page_size=30,
                     virtualization=True,
                     fixed_rows={'headers': True},
@@ -142,6 +147,7 @@ def aggregate_layout():
                     data=[],
                     sort_by=[{'column_id': 'count', 'direction': 'desc'}],
                     sort_action="native",
+                    filter_action="native",
                     page_size=40,
                     virtualization=True,
                     fixed_rows={'headers': True},
@@ -278,6 +284,7 @@ def library_layout():
             ],
             sort_action="native",
             filter_action="native",
+            filter_options={"case": "insensitive"},  # Set case-insensitive filtering
             data=[],
             virtualization=True,
             fixed_rows={'headers': True},
