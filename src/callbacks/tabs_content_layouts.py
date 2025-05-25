@@ -11,19 +11,19 @@ def aggregate_layout():
     default_value = [opt["value"] for opt in options]
     
     return html.Div([
-        html.Br(),
-        dbc.Row([
-                html.Img(src="/assets/test_img.jpg", className="banner-img"),
-                dbc.Col(html.H1(children=[
+            html.Div(children=[
+            html.Img(src="/assets/test_img.jpg", className="banner-img"),
+            html.Div([
+                html.H1(children=[
                     html.Span("Analyze ", className="title-orange"),
                     html.Span("party ", className="title-pink"),
                     html.Span("sets", className="title-green")
-                    ]                   
-                    ,className="dashboard-title"
-                    ), md=12, sm=12)
-                ], style={"marginBottom": "40px","marginTop": "10px"}, className="banner-container"),
-                dbc.Row([
-                    dbc.Col(html.H3("Filter set by date"), md=3, sm=3),
+                ], className="dashboard-title")
+            ], className="title-overlay")
+        ], className="banner-container"),
+        html.Br(),
+        dbc.Row([
+                dbc.Col(html.H3("Filter set by date"), md=3, sm=3),
                 dbc.Col(dcc.DatePickerRange(
                     id="date-range-picker",
                     start_date=default_start,
