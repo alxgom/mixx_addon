@@ -2,7 +2,11 @@ import dash
 from dash import dcc, dash_table
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration
-
+#from dash import Input, Output
+from src.db import get_note
+from src.db import upsert_note
+from datetime import datetime
+import dash_bootstrap_components as dbc
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials,SpotifyOAuth
@@ -144,3 +148,34 @@ def register_individual_callbacks(app):
             return html.A("Open in Spotify", href=url, target="_blank")
         except Exception as e:
             return f"Error exporting: {e}"
+    
+    def update_playlist_note(playlist_id):
+        if not playlist_id:
+            return ""
+        note_text, rating = get_note(playlist_id)
+        # You could optionally include rating info too:
+        # return f"Note: {note_text}\nRating: {rating if rating else 'N/A'}"
+        return note_text      
+
+    @app.callback(
+        dash.Output("save-note-alert", "children"),
+        dash.Input("save-note-btn", "n_clicks"),
+        dash.State("individual-playlist-dropdown", "value"),
+        dash.State("playlist-note-textarea", "value"),
+        dash.State("playlist-note-rating", "value"),
+        prevent_initial_call=True
+    )
+    def save_note(n_clicks, playlist_id, notes, rating):
+        if not playlist_id:
+            return dbc.Alert("⚠️ No playlist selected.", color="warning", dismissable=True)
+
+        upsert_note(playlist_id, notes, rating)
+
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        alert_message = f"✅ Note saved successfully! Last modified: {now_str}"
+
+        return dbc.Alert(alert_message, color="success", duration=4000, dismissable=True)
+
+    
+        
+        

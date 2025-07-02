@@ -267,7 +267,35 @@ def individual_layout():
             "border": "none"
         }
         ),
+
+    
         dcc.Graph(id="individual-playlist-cumulative-plot"),
+
+        # In layout for the individual tab
+        html.Div([
+            html.Label("Playlist Note:"),
+            dcc.Textarea(
+                id="playlist-note-textarea",
+                value="",
+                style={"width": "100%", "height": "100px"}
+            ),
+            html.Br(),
+            html.Label("Rating:"),
+            dcc.Input(
+                id="playlist-note-rating",
+                type="number",
+                min=1,
+                max=5,
+                step=1,
+                value=None,
+                style={"width": "60px", "margin": "5px 0"}
+            ),
+            html.Br(),
+            dbc.Button("Save Note", id="save-note-btn", color="primary", n_clicks=0),
+            html.Div(id="save-note-alert")  # feedback section
+        ], style={"marginTop": "20px"}),
+
+
 
         dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="mt-2"),
         html.Div(id="export-spotify-link", className="mt-2")
@@ -330,24 +358,24 @@ def library_layout():
 
 def songs_layout():
     return html.Div([
-        html.H3("Songs research"),
-        html.H2("Song Search Tool"),
+        html.H2("Songs research"),
+        html.H3("Song Search Tool"),
         # Add crate-related components here.
-        html.Div("A tab where I ran research my songs."),
+        html.H4("A tab where I ran research my songs."),
         dcc.Input(
         id='search-input',
         type='text',
         placeholder='Search by song or artist...',
         debounce=True,  # triggers update only when user stops typing
         style={'width': '100%', 'padding': '10px', 'fontSize': '16px'}
-    ),
-    dash_table.DataTable(
-        id='results-table',
-        columns=[
-            {'name': col, 'id': col} for col in df.columns
-        ],
-        data=[],
-        style_table={'overflowX': 'auto'},
-        page_size=10,
     )
+    # ,dash_table.DataTable(
+    #     id='results-table',
+    # columns=[
+    #         {'name': col, 'id': col} for col in data.columns
+    #     ],
+    #     data=[],
+    #     style_table={'overflowX': 'auto'},
+    #     page_size=10
+    # )
     ])

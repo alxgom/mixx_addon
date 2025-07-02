@@ -8,7 +8,7 @@ from src.database.database import get_library_songs
 def register_songs_callbacks(app):
 
     @app.callback(
-        Output('results-table', 'data'),
+        # Output('results-table', 'data'),
         Input('search-input', 'value')
     )
     def update_table(search_value):
