@@ -244,7 +244,8 @@ def individual_layout():
                         {"name": "Artist", "id": "artist"},
                         {"name": "Album", "id": "album"},
                         {"name": "BPM", "id": "bpm", "type":"numeric"},
-                        {"name": "Duration", "id": "duration", "type":"numeric"}
+                        {"name": "Duration", "id": "duration", "type":"numeric"},
+                        {"name": "Play", "id": "play"}  # render as clickable markdown
                     ],
                     data=[],
                     page_size=10,
@@ -279,13 +280,24 @@ def individual_layout():
             dbc.Col(dcc.Graph(id="individual-playlist-cumulative-plot"), md=12)
         ], style={"marginBottom": "20px"}),
 
-        # Spotify export button
-        dbc.Row([
-            dbc.Col([
-                dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="w-100"),
-                html.Div(id="export-spotify-link", style={"marginTop": "10px"})
-            ], md=3, sm=12)
-        ], style={"marginBottom": "30px"}),
+
+        html.H5("Spotify Player"),
+        html.Iframe(
+            id="spotify-player-iframe",
+            src="",  # Initially empty
+            width="100%",
+            height="80",
+            style={"border": "none", "borderRadius": "5px"}
+        ),
+        # In your individual_layout(), replace the Spotify export section with:
+        dcc.Loading(
+            id="spotify-loading",
+            type="circle",
+            children=html.Div(id="export-spotify-link")
+        ),
+        dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="mt-3"),
+
+
 
         html.Hr(),
 

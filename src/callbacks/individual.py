@@ -1,5 +1,5 @@
 import dash
-from dash import dcc, dash_table, html
+from dash import dcc, dash_table, html,ctx
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration
 from src.db import get_note, upsert_note
@@ -7,9 +7,17 @@ from datetime import datetime
 import dash_bootstrap_components as dbc
 import json
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth,  SpotifyClientCredentials
 import logging
 
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+auth_manager = SpotifyClientCredentials(
+    client_id=config['spotify']['client_id'],
+    client_secret=config['spotify']['client_secret']
+)
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     """Export a Mixxx playlist to Spotify."""
@@ -74,6 +82,7 @@ def register_individual_callbacks(app):
             except Exception:
                 track["duration"] = "N/A"
                 track["bpm"] = None
+            track["play"] = "[Play]"
         return tracks
 
     @app.callback(
@@ -113,19 +122,20 @@ def register_individual_callbacks(app):
         return fig
 
     @app.callback(
-        dash.Output("export-spotify-link", "children"),
-        dash.Input("export-spotify-btn", "n_clicks"),
-        dash.State("individual-playlist-dropdown", "value"),
-        prevent_initial_call=True
+    dash.Output("export-spotify-link", "children"),
+    dash.Input("export-spotify-btn", "n_clicks"),
+    dash.State("individual-playlist-dropdown", "value"),
+    prevent_initial_call=True
     )
     def on_export(n_clicks, mixxx_playlist_id):
         if not mixxx_playlist_id:
-            return "Please select a playlist first."
+            return dbc.Alert("⚠️ Please select a playlist first.", color="warning", dismissable=True)
+
         try:
             url = export_mixxx_to_spotify(mixxx_playlist_id)
-            return html.A("Open in Spotify", href=url, target="_blank")
+            return html.A("✅ Open in Spotify", href=url, target="_blank", style={"fontWeight": "bold"})
         except Exception as e:
-            return f"Error exporting: {e}"
+            return dbc.Alert(f"❌ Error exporting: {e}", color="danger", dismissable=True)
 
     # New callback to load note and rating when playlist changes
     @app.callback(
@@ -155,3 +165,26 @@ def register_individual_callbacks(app):
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
         alert_message = f"✅ Note saved successfully! Last modified: {now_str}"
         return dbc.Alert(alert_message, color="success", duration=4000, dismissable=True)
+
+    @app.callback(
+        dash.Output("spotify-player-iframe", "src"),
+        dash.Input("individual-playlist-table", "active_cell"),
+        dash.State("individual-playlist-table", "data"),
+        prevent_initial_call=True
+    )
+    def play_track(active_cell, table_data):
+        if not active_cell or active_cell["column_id"] != "play":
+            raise dash.exceptions.PreventUpdate
+
+        row = active_cell["row"]
+        track = table_data[row]
+        query = f"artist:{track['artist']} track:{track['title']}"
+
+        results = sp.search(q=query, type="track", limit=1)
+        items = results.get("tracks", {}).get("items", [])
+        if not items:
+            return ""  
+
+        track_id = items[0]["id"]
+        embed_url = f"https://open.spotify.com/embed/track/{track_id}"
+        return embed_url
