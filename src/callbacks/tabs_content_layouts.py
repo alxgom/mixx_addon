@@ -147,7 +147,7 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="artist-played-table",
                     columns=[
-                        {"name": "Artists", "id": "standardized_artist"},
+                        {"name": "Artists", "id": "Artists"},
                         {"name": "Times Played", "id": "count", "type": "numeric"},
                         {"name": "Songs Count", "id": "played_songs_per_artist", "type": "numeric"}
                     ],
@@ -357,8 +357,8 @@ def library_layout():
                 {'if': {'column_id': 'rating'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
                 {'if': {'column_id': 'bpm'}, 'width': '10px', 'maxWidth': '30px','textAlign': 'center'},
                 {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
-                {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                {'if': {'column_id': 'album'}, 'width': '80px', 'maxWidth': '100px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'}
+                {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px'},
+                {'if': {'column_id': 'album'}, 'width': '80px', 'maxWidth': '100px' }
             ],
             style_table={
             'height': 600,
@@ -380,7 +380,10 @@ def library_layout():
             "backgroundColor": "#F6F1EB",
             "color": "#3A3A3A",
             "padding": "8px",
-            "border": "none"
+            "border": "none",
+            'whiteSpace': 'normal',
+            'overflow': 'hidden',
+            'textOverflow': 'ellipsis'
         }
        )  
     ])
