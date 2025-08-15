@@ -216,90 +216,107 @@ def crates_layout():
     ])
 
 def individual_layout():
-    # For the individual layout, you can also get fresh shared data if needed.
     shared = get_shared_data()
     options = shared["party_set_options"]
-    return html.Div([
-        html.H3("Individual Playlist Analysis"),
-        dcc.Dropdown(
-            id="individual-playlist-dropdown",
-            options=options,
-            placeholder="Choose a playlist"
-        ),
-        dash_table.DataTable(
-            id="individual-playlist-table",
-            columns=[
-                {"name": "Title", "id": "title"},
-                {"name": "Artist", "id": "artist"},
-                {"name": "Album", "id": "album"},
-                {"name": "BPM", "id": "bpm", "type":"numeric", "format":Format(precision=2, scheme=Scheme.decimal_integer)},
-                {"name": "Duration", "id": "duration", "type":"numeric"}
-            ],
-            data=[],
-            style_cell_conditional=[
-                {'if': {'column_id': 'artist'}, 'width': '60px', 'maxWidth': '90px','textAlign': 'left'},
-                {'if': {'column_id': 'title'}, 'width': '130px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                {'if': {'column_id': 'album'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                {'if': {'column_id': 'bpm'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
-                {'if': {'column_id': 'duration'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
-            ],
-            style_table={
-            'height': 600,
-            'overflowX': 'auto',    
-            "border": "1px solid #CBA135",
-            "boxShadow": "0 2px 6px rgba(0,0,0,0.1)",
-            "margin-top": "1em",
-            "margin-bottom": "10px"
-        },
-        style_header={
-            "backgroundColor": "#FFFDF8",
-            "fontWeight": "bold",
-            "fontFamily": "Raleway",
-            "color": "#2C3E50"
-        },
-        style_cell={
-            'textAlign': 'left',
-            "fontSize": "14px",
-            "fontFamily": "Quicksand",
-            "backgroundColor": "#F6F1EB",
-            "color": "#3A3A3A",
-            "padding": "8px",
-            "border": "none"
-        }
-        ),
-
     
-        dcc.Graph(id="individual-playlist-cumulative-plot"),
+    return html.Div([
+        html.H3("Individual Playlist Analysis", style={"marginBottom": "20px"}),
 
-        # In layout for the individual tab
-        html.Div([
-            html.Label("Playlist Note:"),
-            dcc.Textarea(
-                id="playlist-note-textarea",
-                value="",
-                style={"width": "100%", "height": "100px"}
-            ),
-            html.Br(),
-            html.Label("Rating:"),
-            dcc.Input(
-                id="playlist-note-rating",
-                type="number",
-                min=1,
-                max=5,
-                step=1,
-                value=None,
-                style={"width": "60px", "margin": "5px 0"}
-            ),
-            html.Br(),
-            dbc.Button("Save Note", id="save-note-btn", color="primary", n_clicks=0),
-            html.Div(id="save-note-alert")  # feedback section
-        ], style={"marginTop": "20px"}),
+        # Playlist dropdown
+        dbc.Row([
+            dbc.Col([
+                html.Label("Select Playlist:"),
+                dcc.Dropdown(
+                    id="individual-playlist-dropdown",
+                    options=options,
+                    placeholder="Choose a playlist"
+                )
+            ], md=6, sm=12)
+        ], style={"marginBottom": "20px"}),
 
+        # Tracks table
+        dbc.Row([
+            dbc.Col([
+                dash_table.DataTable(
+                    id="individual-playlist-table",
+                    columns=[
+                        {"name": "Title", "id": "title"},
+                        {"name": "Artist", "id": "artist"},
+                        {"name": "Album", "id": "album"},
+                        {"name": "BPM", "id": "bpm", "type":"numeric"},
+                        {"name": "Duration", "id": "duration", "type":"numeric"}
+                    ],
+                    data=[],
+                    page_size=10,
+                    style_table={
+                        'height': 500,
+                        'overflowX': 'auto',
+                        "border": "1px solid #CBA135",
+                        "boxShadow": "0 2px 6px rgba(0,0,0,0.1)",
+                        "marginBottom": "20px"
+                    },
+                    style_header={
+                        "backgroundColor": "#FFFDF8",
+                        "fontWeight": "bold",
+                        "fontFamily": "Raleway",
+                        "color": "#2C3E50"
+                    },
+                    style_cell={
+                        'textAlign': 'left',
+                        "fontSize": "14px",
+                        "fontFamily": "Quicksand",
+                        "backgroundColor": "#F6F1EB",
+                        "color": "#3A3A3A",
+                        "padding": "8px",
+                        "border": "none"
+                    }
+                )
+            ], md=12)
+        ]),
 
+        # Cumulative BPM plot
+        dbc.Row([
+            dbc.Col(dcc.Graph(id="individual-playlist-cumulative-plot"), md=12)
+        ], style={"marginBottom": "20px"}),
 
-        dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="mt-2"),
-        html.Div(id="export-spotify-link", className="mt-2")
+        # Spotify export button
+        dbc.Row([
+            dbc.Col([
+                dbc.Button("Export to Spotify", id="export-spotify-btn", color="success", className="w-100"),
+                html.Div(id="export-spotify-link", style={"marginTop": "10px"})
+            ], md=3, sm=12)
+        ], style={"marginBottom": "30px"}),
+
+        html.Hr(),
+
+        # Notes section (smaller on large screens)
+        dbc.Row([
+            dbc.Col([
+                html.H4("Playlist Notes", style={"marginBottom": "10px"}),
+                html.Label("Note:"),
+                dcc.Textarea(
+                    id="playlist-note-textarea",
+                    value="",
+                    style={"width": "100%", "height": "100px"}
+                ),
+                html.Br(),
+                html.Label("Rating:"),
+                dcc.Input(
+                    id="playlist-note-rating",
+                    type="number",
+                    min=1,
+                    max=5,
+                    step=1,
+                    value=None,
+                    style={"width": "60px", "margin": "5px 0"}
+                ),
+                html.Br(),
+                dbc.Button("Save Note", id="save-note-btn", color="primary", className="mt-2 w-100"),
+                html.Div(id="save-note-alert", style={"marginTop": "10px"})
+            ], md=4, sm=12)
+        ], style={"marginTop": "30px", "marginBottom": "50px"})
     ])
+
 
 def library_layout():
     return html.Div([

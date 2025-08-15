@@ -33,7 +33,7 @@ try:
     dst_cur.execute("""
         DELETE FROM library
          WHERE id NOT IN (
-             SELECT id FROM library ORDER BY id 
+             SELECT id FROM library ORDER BY id Limit 1000
          )
     """)
 
