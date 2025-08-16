@@ -5,7 +5,7 @@ from .library import register_library_callbacks
 from .tabs_content import register_tabs_callbacks
 from .songs import register_songs_callbacks
 from .plotly_template import register_swing_theme
-from .shared import get_shared_data
+from .shared import get_shared_data, clean_and_split_artists
 #from .spot import export_mixxx_to_spotif
 
 # Compute shared data once for initial defaults.

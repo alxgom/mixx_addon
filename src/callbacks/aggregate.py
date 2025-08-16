@@ -1,28 +1,15 @@
 import datetime
 import dash
-from dash import dcc, html, dash_table, no_update
+#from dash import dcc, html, dash_table, no_update
 import plotly.express as px
 import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration, join_dates
-from src.callbacks.shared import get_shared_data
+from src.callbacks.shared import get_shared_data, clean_and_split_artists
 from src.callbacks.plotly_template import register_swing_theme
-import re
+from src.database.database import get_library_songs
 
 register_swing_theme()  # register and set as default
 
-def split_artists(artist_str):
-    """Split artist strings on common separators and collaborations."""
-    if not artist_str:
-        return []
-    # Split on common collaboration keywords
-    parts = re.split(r'\s*(?:feat\.|ft\.|&|,|/|with|vs\.)\s*', artist_str, flags=re.IGNORECASE)
-    return [p.strip() for p in parts if p.strip()]
-
-def standardize_artist_name(artist_string):
-    """Clean up and normalize a single artist string."""
-    if not artist_string:
-        return ""
-    return artist_string.strip()
 
 def register_aggregate_callbacks(app):
 
@@ -101,9 +88,12 @@ def register_aggregate_callbacks(app):
         df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
 
         # === EXPLODE ARTISTS ===
-        df['artist_list'] = df['artist'].apply(split_artists)
+       
+        df['artist_list'] = df['artist'].apply(clean_and_split_artists)
         df_exploded = df.explode('artist_list')
-        df_exploded['artist_list'] = df_exploded['artist_list'].apply(standardize_artist_name)
+
+        df_exploded = df_exploded[df_exploded["artist_list"].notna() & (df_exploded["artist_list"] != "")]
+
 
         # === STATISTICS ===
         total_songs = len(df)
@@ -174,9 +164,9 @@ def register_aggregate_callbacks(app):
         artist_counts.rename(columns={'artist_list': 'Artists'}, inplace=True)
 
         # === UNPLAYED ARTISTS ===
-        all_artists = set([a for artists in df['artist'].apply(split_artists) for a in artists])
+        all_library_artists = shared.get("all_library_artists", set())
         played_artists = set(df_exploded['artist_list'].unique())
-        unplayed_artists = sorted(all_artists - played_artists)
+        unplayed_artists = sorted(all_library_artists - played_artists)
         unplayed_artists_table = [{"Artists": a} for a in unplayed_artists]
 
         # Return all outputs
@@ -204,4 +194,82 @@ def _empty_aggregate():
     return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
             "Top Played Artist: -", "Top Played Song: -", "Avg Duration: 0",
             "-", "-", default_fig, default_fig, default_fig, [], [], [])
+    
+    
+    
+    
+    
+    '''
+            
 
+    import re
+import pandas as pd
+from dash import Input, Output, State, dash_table
+import plotly.express as px
+# --- Helper function to clean & split artist names ---
+
+
+def register_aggregate_callbacks(app):
+    # --- Callback for updating artist analysis ---
+    @app.callback(
+        Output("artist-bar-chart", "figure"),
+        Output("artist-played-table", "data"),
+        Output("top-played-artist", "children"),
+        Output("unplayed-artists-table", "data"),
+        Input("playlist-store", "data"),
+        State("master-artist-list-store", "data")
+    )
+    def update_artist_analysis(playlist_data, master_artist_list):
+        if not playlist_data:
+            return px.bar(), [], "Top Played Artist: -", []
+
+        df = pd.DataFrame(playlist_data)
+
+        # Explode artists into separate rows
+        df_exploded = df.assign(
+            artist_list=df["standardized_artist"].apply(clean_and_split_artists)
+        ).explode("artist_list")
+
+        # Remove any empty values
+        df_exploded = df_exploded[df_exploded["artist_list"].notna() & (df_exploded["artist_list"] != "")]
+
+        # Count plays per artist
+        artist_counts = (
+            df_exploded.groupby("artist_list")
+            .agg(count=("artist_list", "size"),
+                played_songs_per_artist=("Track Name", "nunique"))
+            .reset_index()
+            .rename(columns={"artist_list": "standardized_artist"})
+            .sort_values(by="count", ascending=False)
+        )
+
+        # Bar chart
+        fig = px.bar(
+            artist_counts.head(20),
+            x="standardized_artist",
+            y="count",
+            title="Top Played Artists",
+            labels={"standardized_artist": "Artist", "count": "Times Played"}
+        )
+        fig.update_layout(xaxis_tickangle=-45)
+
+        # Top artist name
+        top_artist_name = artist_counts.iloc[0]["standardized_artist"] if not artist_counts.empty else "-"
+        top_artist_text = f"Top Played Artist: {top_artist_name}"
+
+        # Unplayed artists
+        if master_artist_list:
+            cleaned_master_list = []
+            for a in master_artist_list:
+                cleaned_master_list.extend(clean_and_split_artists(a))
+            cleaned_master_list = sorted(set(cleaned_master_list))
+
+            played_artists_set = set(artist_counts["standardized_artist"])
+            unplayed_artists = [{"Artists": a} for a in cleaned_master_list if a not in played_artists_set]
+        else:
+            unplayed_artists = []
+
+        return fig, artist_counts.to_dict("records"), top_artist_text, unplayed_artists
+
+
+            '''

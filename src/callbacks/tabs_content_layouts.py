@@ -190,8 +190,7 @@ def aggregate_layout():
         ]),
         html.Br(),
         dbc.Row([
-            dbc.Col(html.H5("Unplayed Artists"), width=12)
-        ]),
+            dbc.Col(html.H4("Unplayed Artists",className="text-center"), width=12)]),
         dbc.Row([
             dbc.Col(
                 dash_table.DataTable(
@@ -200,8 +199,27 @@ def aggregate_layout():
                     data=[],
                     sort_action="native",
                     page_size=40,
-                    style_table={'overflowX': 'auto'},
-                    style_cell={'textAlign': 'left', "fontSize": "14px"}
+                    style_table={
+                    'height': 600,
+                    'overflowX': 'auto',    
+                    "border": "1px solid #CBA135",
+                    "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                },
+                style_header={
+                    "backgroundColor": "#FFFDF8",
+                    "fontWeight": "bold",
+                    "fontFamily": "Raleway",
+                    "color": "#2C3E50"
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    "fontSize": "14px",
+                    "fontFamily": "Quicksand",
+                    "backgroundColor": "#F6F1EB",
+                    "color": "#3A3A3A",
+                    "padding": "8px",
+                    "border": "none"
+                }
                 ),
                 width=12
             )

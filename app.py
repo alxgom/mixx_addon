@@ -11,4 +11,4 @@ app.layout = get_layout(party_set_options, default_start, default_end)
 register_callbacks(app)
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
