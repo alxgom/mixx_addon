@@ -92,7 +92,7 @@ def register_individual_callbacks(app):
             except Exception:
                 track["duration"] = "N/A"
                 track["bpm"] = None
-            track["play"] = "[Play]"
+            track["play"] = "▶"
         return tracks
 
     @app.callback(

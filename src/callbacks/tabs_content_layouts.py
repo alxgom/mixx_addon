@@ -250,8 +250,18 @@ def individual_layout():
                     options=options,
                     placeholder="Choose a playlist"
                 )
-            ], md=6, sm=12)
+            ], md=6, sm=12),
+            dbc.Col(
+            html.Iframe(
+                id="spotify-player-iframe",
+                src="",  # Initially empty
+                width="100%",
+                height="80",
+                style={"border": "none", "borderRadius": "5px"}
+            )
+            , md=6, sm=6 )
         ], style={"marginBottom": "20px"}),
+
 
         # Tracks table
         dbc.Row([
@@ -267,12 +277,14 @@ def individual_layout():
                         {"name": "Play", "id": "play"}  # render as clickable markdown
                     ],
                     data=[],
+                    fixed_rows={'headers': True},
                     page_size=40,
                     style_cell_conditional=[
                         {'if': {'column_id': 'title'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'artist'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'album'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'bpm'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
+                        {'if': {'column_id': 'play'}, 'width': '100px', 'maxWidth': '100px','textAlign': 'center','color': '#81b71a','fontWeight': 'bold'},
                 ],
                     style_table={
                         'height': 500,
@@ -292,7 +304,7 @@ def individual_layout():
                         "fontSize": "14px",
                         "fontFamily": "Quicksand",
                         "backgroundColor": "#F6F1EB",
-                        "color": "#3A3A3A",
+                        #"color": "#3A3A3A",
                         "padding": "8px",
                         "border": "none",
                         'whiteSpace': 'normal',
@@ -308,15 +320,8 @@ def individual_layout():
             dbc.Col(dcc.Graph(id="individual-playlist-cumulative-plot"), md=12)
         ], style={"marginBottom": "20px"}),
 
+       
 
-        html.H5("Spotify Player"),
-        html.Iframe(
-            id="spotify-player-iframe",
-            src="",  # Initially empty
-            width="100%",
-            height="80",
-            style={"border": "none", "borderRadius": "5px"}
-        ),
         # In your individual_layout(), replace the Spotify export section with:
         dcc.Loading(
             id="spotify-loading",
