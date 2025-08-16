@@ -1,7 +1,8 @@
-from dash import html, dcc, dash_table,Input, Output
+from dash import html, dcc, dash_table
+#from dash import Input, Output
 import dash_bootstrap_components as dbc
 from src.callbacks.shared import get_shared_data
-from dash.dash_table.Format import Format, Scheme, Trim
+from dash.dash_table.Format import Format, Scheme #, Trim
 def aggregate_layout():
     shared = get_shared_data()
     default_start = shared["default_start"]

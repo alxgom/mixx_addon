@@ -9,9 +9,19 @@ import json
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth,  SpotifyClientCredentials
 import logging
+import os
 
-with open('config.json', 'r') as f:
-    config = json.load(f)
+# Define the path where Render mounts the secret file
+SECRET_FILE_PATH = '/etc/secrets/config.json'
+
+# Check if the secret file exists (on Render)
+if os.path.exists(SECRET_FILE_PATH):
+    with open(SECRET_FILE_PATH, 'r') as f:
+        config = json.load(f)
+# Otherwise, fall back to the local file (for your computer)
+else:
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
 auth_manager = SpotifyClientCredentials(
     client_id=config['spotify']['client_id'],

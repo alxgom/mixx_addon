@@ -6,7 +6,7 @@ import pandas as pd
 from src.database.database import get_tracks_for_playlist, format_duration, join_dates
 from src.callbacks.shared import get_shared_data, clean_and_split_artists
 from src.callbacks.plotly_template import register_swing_theme
-from src.database.database import get_library_songs
+
 
 register_swing_theme()  # register and set as default
 
