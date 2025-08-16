@@ -267,12 +267,18 @@ def individual_layout():
                         {"name": "Play", "id": "play"}  # render as clickable markdown
                     ],
                     data=[],
-                    page_size=10,
+                    page_size=40,
+                    style_cell_conditional=[
+                        {'if': {'column_id': 'title'}, 'width': '200px', 'maxWidth': '280px'},
+                        {'if': {'column_id': 'artist'}, 'width': '200px', 'maxWidth': '280px'},
+                        {'if': {'column_id': 'album'}, 'width': '200px', 'maxWidth': '280px'},
+                        {'if': {'column_id': 'bpm'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
+                ],
                     style_table={
                         'height': 500,
-                        'overflowX': 'auto',
                         "border": "1px solid #CBA135",
                         "boxShadow": "0 2px 6px rgba(0,0,0,0.1)",
+                        "overflow-y": "auto",
                         "marginBottom": "20px"
                     },
                     style_header={
@@ -288,7 +294,10 @@ def individual_layout():
                         "backgroundColor": "#F6F1EB",
                         "color": "#3A3A3A",
                         "padding": "8px",
-                        "border": "none"
+                        "border": "none",
+                        'whiteSpace': 'normal',
+                        'overflow': 'hidden',
+                        'textOverflow': 'ellipsis'
                     }
                 )
             ], md=12)
