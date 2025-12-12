@@ -76,6 +76,7 @@ def _initialize_data():
     
     song_counts = {}  # (artist, title) -> count
     repetition_stats = []
+    playlist_song_history = {}
 
     for pl in sorted_party_sets:
         tracks = get_tracks_for_playlist(pl["id"])
@@ -104,21 +105,16 @@ def _initialize_data():
             
             total_tracks += 1
             
-        # Update global counts AFTER processing the whole set? 
-        # Or as we go? 
-        # Usually "First time played" means "Before this moment". 
-        # But if I play a song twice in my FIRST set, is the second time "Second time"?
-        # Yes, technically.
-        # So we should update counts as we go essentially, OR update them after if we consider the "Set" as the unit of time.
-        # Given "first time played in a set", it usually refers to the set as a whole vs history.
-        # If I play a new song twice in a set, the user probably considers it "New" for that set.
-        # Let's stick to: "Status at the start of the set".
-        
-        # BUT, if we do that, we need to update the global counts *after* the analysis loop.
+        # 2. Second pass: Update global counts and record history for this playlist
+        current_playlist_snapshot = {}
         for track in tracks:
             key = (track.get("artist"), track.get("title"))
-            song_counts[key] = song_counts.get(key, 0) + 1
+            new_count = song_counts.get(key, 0) + 1
+            song_counts[key] = new_count
+            current_playlist_snapshot[key] = new_count
             
+        playlist_song_history[pl["id"]] = current_playlist_snapshot
+        
         pct_first = (count_first / total_tracks * 100) if total_tracks > 0 else 0
         pct_second = (count_second / total_tracks * 100) if total_tracks > 0 else 0
         pct_third_plus = (count_third_plus / total_tracks * 100) if total_tracks > 0 else 0
@@ -140,7 +136,9 @@ def _initialize_data():
         "default_start": default_start,
         "default_end": default_end,
         "all_library_artists": all_library_artists,
-        "repetition_stats": repetition_stats
+        "repetition_stats": repetition_stats,
+        "song_counts": song_counts,
+        "playlist_song_history": playlist_song_history
     }
 
 # This crucial line runs the expensive initialization once and stores the result.

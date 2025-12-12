@@ -75,6 +75,8 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
     return playlist['id']
 
 
+from src.callbacks.shared import get_shared_data
+
 def register_individual_callbacks(app):
 
     @app.callback(
@@ -84,6 +86,13 @@ def register_individual_callbacks(app):
     def update_individual_playlist(selected_playlist):
         if not selected_playlist:
             return []
+            
+        shared = get_shared_data()
+        playlist_song_history = shared.get("playlist_song_history", {})
+        
+        # Get counts for THIS playlist specifically (snapshot in time)
+        current_playlist_counts = playlist_song_history.get(selected_playlist, {})
+        
         tracks = get_tracks_for_playlist(selected_playlist)
         for track in tracks:
             try:
@@ -92,6 +101,11 @@ def register_individual_callbacks(app):
             except Exception:
                 track["duration"] = "N/A"
                 track["bpm"] = None
+            
+            # Add times_played
+            key = (track.get("artist"), track.get("title"))
+            track["times_played"] = current_playlist_counts.get(key, 0)
+            
             track["play"] = "▶"
         return tracks
 

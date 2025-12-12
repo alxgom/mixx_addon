@@ -62,6 +62,10 @@ def aggregate_layout():
             ], width=12)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
+            dbc.Col(dbc.Card(html.H5(id="total-blues-sets", children="Blues Sets: 0", className="text-center"), body=True), width=6, className="mb-2"),
+            dbc.Col(dbc.Card(html.H5(id="total-lindy-sets", children="Lindy Sets: 0", className="text-center"), body=True), width=6)
+        ], style={"marginBottom": "10px"}),
+        dbc.Row([
             dbc.Col(dbc.Card(html.H5(id="total-songs", children="Total Songs: 0",className="text-center"), body=True), width=6, className="mb-2"),
             dbc.Col(dbc.Card(html.H5(id="avg-duration", children="Avg Duration: 0",className="text-center"), body=True), width=6)
         ], style={"marginBottom": "10px"}),
@@ -278,18 +282,41 @@ def individual_layout():
                         {"name": "Album", "id": "album"},
                         {"name": "BPM", "id": "bpm", "type":"numeric"},
                         {"name": "Duration", "id": "duration", "type":"numeric"},
+                        {"name": "Times\nPlayed", "id": "times_played", "type": "numeric"},
                         {"name": "Play", "id": "play"}  # render as clickable markdown
                     ],
                     data=[],
                     fixed_rows={'headers': True},
                     page_size=40,
                     style_cell_conditional=[
+                        {'if': {'column_id': 'times_played'}, 'width': '50px', 'maxWidth': '50px', 'textAlign': 'center'},
                         {'if': {'column_id': 'title'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'artist'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'album'}, 'width': '200px', 'maxWidth': '280px'},
                         {'if': {'column_id': 'bpm'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
                         {'if': {'column_id': 'play'}, 'width': '100px', 'maxWidth': '100px','textAlign': 'center','color': '#81b71a','fontWeight': 'bold'},
                 ],
+                    style_data_conditional=[
+                        # Conditional formatting for Times Played (Theme Colors)
+                        {
+                            'if': {
+                                'column_id': 'times_played',
+                                'filter_query': '{times_played} = 2'
+                            },
+                            'backgroundColor': '#F9E79F', # Light Gold
+                            'color': '#3A3A3A',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'times_played',
+                                'filter_query': '{times_played} >= 3'
+                            },
+                            'backgroundColor': '#CBA135', # Theme Gold
+                            'color': '#FFFDF8',
+                            'fontWeight': 'bold'
+                        }
+                    ],
                     style_table={
                         'height': 500,
                         "border": "1px solid #CBA135",

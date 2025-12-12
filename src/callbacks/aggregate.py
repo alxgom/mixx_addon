@@ -16,6 +16,8 @@ def register_aggregate_callbacks(app):
     @app.callback(
         [
             dash.Output("total-songs", "children"),
+            dash.Output("total-blues-sets", "children"),
+            dash.Output("total-lindy-sets", "children"),
             dash.Output("unique-songs", "children"),
             dash.Output("unique-artists", "children"),
             dash.Output("avg-bpm", "children"),
@@ -103,6 +105,22 @@ def register_aggregate_callbacks(app):
         unique_artists = df_exploded["artist_list"].nunique()
         avg_bpm = df_exploded["bpm"].mean() if not df_exploded["bpm"].isna().all() else 0
 
+        # Style Counts
+        blues_count = 0
+        lindy_count = 0
+        for pid in filtered_set_ids:
+             # Find name from matching set in party_sets
+             # We can't easily look up by ID from the list without iterating? 
+             # Or we can build a temporary lookup
+             pl = next((p for p in party_sets if p["id"] == pid), None)
+             if pl:
+                 parts = [p.strip().lower() for p in pl["name"].split(" - ")]
+                 style = parts[1] if len(parts) > 1 else ""
+                 if style == "blues":
+                     blues_count += 1
+                 elif style == "lindy":
+                     lindy_count += 1
+
         # Top played artist (by track count)
         top_played_artist = df_exploded["artist_list"].value_counts().idxmax() if not df_exploded["artist_list"].isna().all() else "-"
 
@@ -150,8 +168,12 @@ def register_aggregate_callbacks(app):
             # We filter by ID using the same logic as the main filter
             rep_df = rep_df[rep_df["id"].isin(filtered_set_ids)]
             
+            # Format Date for Tooltip
+            if not rep_df.empty:
+                 rep_df["date_str"] = rep_df["date"].apply(lambda d: d.strftime('%d-%m-%Y') if d else "")
+
             # Melt for multiple lines
-            rep_melted = rep_df.melt(id_vars=["date", "name"], 
+            rep_melted = rep_df.melt(id_vars=["date", "date_str", "name"], 
                                      value_vars=["pct_first", "pct_second", "pct_third_plus"],
                                      var_name="Category", value_name="Percentage")
             
@@ -176,7 +198,7 @@ def register_aggregate_callbacks(app):
 
             rep_fig = px.line(rep_melted, x="Set Order", y="Percentage", color="Category",
                               title="Song First-Time & Repetition Stats",
-                              hover_data=["name", "date"], 
+                              hover_data=["name", "date_str"], 
                               markers=True,
                               symbol="Category",   # Different markers
                               line_dash="Category" # Different line styles
@@ -222,6 +244,8 @@ def register_aggregate_callbacks(app):
         # Return all outputs
         return (
             f"Total Songs: {total_songs}",
+            f"Blues Sets: {blues_count}",
+            f"Lindy Sets: {lindy_count}",
             f"Unique Songs: {unique_songs}",
             f"Unique Artists: {unique_artists}",
             f"Avg BPM: {avg_bpm:.1f}",
@@ -242,7 +266,7 @@ def register_aggregate_callbacks(app):
 def _empty_aggregate():
     """Return empty placeholders for aggregate callback."""
     default_fig = {}
-    return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
+    return ("Total Songs: 0", "Blues Sets: 0", "Lindy Sets: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
             "Top Played Artist: -", "Top Played Song: -", "Avg Duration: 0",
             "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [])
     
