@@ -84,6 +84,10 @@ def aggregate_layout():
         ]),
         html.Br(),
         dbc.Row([
+            dbc.Col(dcc.Graph(id="repetition-plot"), sm=12)
+        ]),
+        html.Br(),
+        dbc.Row([
             dbc.Col(html.H4("Most played songs",className="text-center"), width=12),
             dbc.Col(dbc.Card(html.H4(id="top-played-song", children="Top Played Song: -"), body=True), width=12)
         ], style={"marginTop": "20px"}),

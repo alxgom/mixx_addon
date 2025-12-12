@@ -1,6 +1,6 @@
 import datetime
 import re
-from src.database.database import get_playlists, get_library_songs
+from src.database.database import get_playlists, get_library_songs, get_tracks_for_playlist
 
 def _custom_title(name):
     """A smarter title-casing function to handle names with apostrophes."""
@@ -68,7 +68,71 @@ def _initialize_data():
             for name in cleaned_names:
                 all_library_artists.add(name)
 
-    # --- 3. Return a single dictionary with all the prepared data ---
+    # --- 3. Repetition Analysis (First Time, Second Time, 3+ Times) ---
+    # We must process party_sets in chronological order.
+    # party_sets is already sorted by date because of how we built options? 
+    # Actually, let's ensure it is sorted strictly by date.
+    sorted_party_sets = sorted(party_sets, key=lambda x: x["date"])
+    
+    song_counts = {}  # (artist, title) -> count
+    repetition_stats = []
+
+    for pl in sorted_party_sets:
+        tracks = get_tracks_for_playlist(pl["id"])
+        
+        count_first = 0
+        count_second = 0
+        count_third_plus = 0
+        total_tracks = 0
+        
+        # Track which songs we've seen IN THIS SET to avoid double counting 
+        # (though usually a song appears once per set, but good to be safe id logic changes)
+        # However, the requirement is "songs played", so if it's played twice in a set, it counts twice?
+        # Usually for "first time played", we care about the *track* being new.
+        # Let's iterate through tracks.
+        
+        for track in tracks:
+            key = (track.get("artist"), track.get("title"))
+            current_count = song_counts.get(key, 0)
+            
+            if current_count == 0:
+                count_first += 1
+            elif current_count == 1:
+                count_second += 1
+            else:
+                count_third_plus += 1
+            
+            total_tracks += 1
+            
+        # Update global counts AFTER processing the whole set? 
+        # Or as we go? 
+        # Usually "First time played" means "Before this moment". 
+        # But if I play a song twice in my FIRST set, is the second time "Second time"?
+        # Yes, technically.
+        # So we should update counts as we go essentially, OR update them after if we consider the "Set" as the unit of time.
+        # Given "first time played in a set", it usually refers to the set as a whole vs history.
+        # If I play a new song twice in a set, the user probably considers it "New" for that set.
+        # Let's stick to: "Status at the start of the set".
+        
+        # BUT, if we do that, we need to update the global counts *after* the analysis loop.
+        for track in tracks:
+            key = (track.get("artist"), track.get("title"))
+            song_counts[key] = song_counts.get(key, 0) + 1
+            
+        pct_first = (count_first / total_tracks * 100) if total_tracks > 0 else 0
+        pct_second = (count_second / total_tracks * 100) if total_tracks > 0 else 0
+        pct_third_plus = (count_third_plus / total_tracks * 100) if total_tracks > 0 else 0
+        
+        repetition_stats.append({
+            "id": pl["id"],
+            "name": pl["name"],
+            "date": pl["date"],
+            "pct_first": pct_first,
+            "pct_second": pct_second,
+            "pct_third_plus": pct_third_plus
+        })
+
+    # --- 4. Return a single dictionary with all the prepared data ---
     return {
         "party_sets": party_sets,
         "playlist_id_to_date": playlist_id_to_date,
@@ -76,6 +140,7 @@ def _initialize_data():
         "default_start": default_start,
         "default_end": default_end,
         "all_library_artists": all_library_artists,
+        "repetition_stats": repetition_stats
     }
 
 # This crucial line runs the expensive initialization once and stores the result.

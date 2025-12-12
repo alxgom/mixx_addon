@@ -27,6 +27,7 @@ def register_aggregate_callbacks(app):
             dash.Output("bpm-histogram", "figure"),
             dash.Output("artist-bar-chart", "figure"),
             dash.Output("bpm-boxplot", "figure"),
+            dash.Output("repetition-plot", "figure"),
             dash.Output("played-songs-table", "data"),
             dash.Output("artist-played-table", "data"),
             dash.Output("unplayed-artists-table", "data")
@@ -42,6 +43,7 @@ def register_aggregate_callbacks(app):
         shared = get_shared_data()
         playlist_id_to_date = shared["playlist_id_to_date"]
         party_sets = shared["party_sets"]
+        repetition_stats = shared.get("repetition_stats", [])
 
         # Filter by styles
         valid_ids = []
@@ -127,7 +129,7 @@ def register_aggregate_callbacks(app):
 
         # === HISTOGRAM ===
         hist_fig = px.histogram(df_exploded, x="bpm", nbins=20, title="BPM Distribution")
-        hist_fig.update_layout(xaxis_title="BPM", yaxis_title="Count")
+        hist_fig.update_layout(xaxis_title="BPM", yaxis_title="Count",xaxis_range=[30, None] )
 
         # === TOP ARTISTS BAR PLOT ===
         top_artists = df_exploded['artist_list'].value_counts().head(10).reset_index()
@@ -140,6 +142,54 @@ def register_aggregate_callbacks(app):
         # === BPM BOX PLOT ===
         box_fig = px.box(df_exploded, x="set_date", y="bpm", points="all", title="BPM Distribution by Set")
         box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM")
+
+        # === REPETITION PLOT ===
+        # Filter repetition stats to selected sets
+        rep_df = pd.DataFrame(repetition_stats)
+        if not rep_df.empty:
+            # We filter by ID using the same logic as the main filter
+            rep_df = rep_df[rep_df["id"].isin(filtered_set_ids)]
+            
+            # Melt for multiple lines
+            rep_melted = rep_df.melt(id_vars=["date", "name"], 
+                                     value_vars=["pct_first", "pct_second", "pct_third_plus"],
+                                     var_name="Category", value_name="Percentage")
+            
+            category_map = {
+                "pct_first": "First Time",
+                "pct_second": "Second Time",
+                "pct_third_plus": "3+ Times"
+            }
+            rep_melted["Category"] = rep_melted["Category"].map(category_map)
+            
+            # Create a sequential order column for the x-axis to avoid time gaps
+            # We want the order to be based on the set dates/sequence
+            # rep_melted contains 3 rows per set. We need to assign the same order to each trio.
+            # Using rank or dense_rank on date is one way, or just mapping id to an index.
+            
+            # Get unique dates/ids sorted
+            unique_sets = rep_melted[["date", "id"] if "id" in rep_melted.columns else ["date", "name"]].drop_duplicates().sort_values("date")
+            unique_sets["Set Order"] = range(1, len(unique_sets) + 1)
+            
+            # Merge back to get the order
+            rep_melted = rep_melted.merge(unique_sets[["date", "Set Order"]], on="date", how="left")
+
+            rep_fig = px.line(rep_melted, x="Set Order", y="Percentage", color="Category",
+                              title="Song First-Time & Repetition Stats",
+                              hover_data=["name", "date"], 
+                              markers=True,
+                              symbol="Category",   # Different markers
+                              line_dash="Category" # Different line styles
+                              )
+            
+            rep_fig.update_traces(
+                line=dict(width=3), 
+                marker=dict(size=8),
+                hovertemplate="<b>%{customdata[0]}</b><br>Date: %{customdata[1]}<br>Set Order: %{x}<br>Percentage: %{y:.0f}%<extra></extra>"
+            ) 
+            rep_fig.update_layout(xaxis_title="Set Sequence (Order)", yaxis_title="Percentage (%)", yaxis_range=[0, 100])
+        else:
+            rep_fig = {}
 
         # === PLAYED SONGS TABLE ===
         played_songs_table = df.groupby(["artist", "title"]).agg(
@@ -183,6 +233,7 @@ def register_aggregate_callbacks(app):
             hist_fig,
             bar_fig,
             box_fig,
+            rep_fig,
             played_songs_table.to_dict('records'),
             artist_counts.to_dict('records'),
             unplayed_artists_table
@@ -193,7 +244,7 @@ def _empty_aggregate():
     default_fig = {}
     return ("Total Songs: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
             "Top Played Artist: -", "Top Played Song: -", "Avg Duration: 0",
-            "-", "-", default_fig, default_fig, default_fig, [], [], [])
+            "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [])
     
     
     
