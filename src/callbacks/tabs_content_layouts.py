@@ -238,8 +238,54 @@ def aggregate_layout():
 def crates_layout():
     return html.Div([
         html.H3("Crate Analysis"),
-        # Add crate-related components here.
-        html.Div("Crate Analysis content goes here")
+        dcc.Graph(id="crate-structure-chart"),
+        dbc.Row([
+            dbc.Col(
+                dash_table.DataTable(
+                    id="crate-structure-table",
+                    columns=[{"name": "Crate Path", "id": "Crate Path"}],
+                    data=[],
+                    page_size=20,
+                    style_table={'height': '300px', 'overflowY': 'auto'}
+                ),
+                width=6
+            ),
+            dbc.Col(
+                html.Div([
+                    html.H4("Songs in selected crate"),
+                    dash_table.DataTable(
+                        id="crate-songs-table",
+                        columns=[
+                            {"name": "Artist", "id": "artist"},
+                            {"name": "Title", "id": "title"},
+                            {"name": "BPM", "id": "bpm"},
+                            {"name": "Duration", "id": "duration"},
+                            {"name": "Rating", "id": "rating"}
+                        ],
+                        data=[],
+                        page_size=20,
+                        style_table={'height': '300px', 'overflowY': 'auto'}
+                    )
+                ]),
+                width=6
+            )
+        ]),
+        html.Hr(),
+        html.H4("Songs not in any crate"),
+        dash_table.DataTable(
+            id="songs-without-crate-table",
+            columns=[
+                {"name": "Artist", "id": "artist"},
+                {"name": "Title", "id": "title"},
+                {"name": "Album", "id": "album"},
+                {"name": "BPM", "id": "bpm"},
+                {"name": "Duration", "id": "duration"},
+                {"name": "Rating", "id": "rating"}
+            ],
+            data=[],
+            page_size=20,
+            style_table={'height': '400px', 'overflowY': 'auto'}
+        )
     ])
 
 def individual_layout():

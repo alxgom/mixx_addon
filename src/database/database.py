@@ -103,6 +103,21 @@ def get_songs_not_in_crates():
     conn.close()
     return [dict(song) for song in songs]
 
+def get_songs_for_crate(crate_id):
+    conn = sqlite3.connect(dbpath)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    query = """
+        SELECT lib.artist, lib.title, lib.album, lib.bpm, lib.duration, lib.rating
+        FROM crate_tracks ct
+        JOIN library lib ON ct.track_id = lib.id
+        WHERE ct.crate_id = ? AND lib.hidden = 0
+    """
+    cur.execute(query, (crate_id,))
+    songs = cur.fetchall()
+    conn.close()
+    return [dict(song) for song in songs]
+
 def get_library_songs():
     conn = sqlite3.connect(dbpath)
     conn.row_factory = sqlite3.Row
