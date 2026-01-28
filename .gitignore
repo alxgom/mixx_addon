@@ -1,1 +1,11 @@
 config.json
+exploratory_tests/find_tracks.py
+exploratory_tests/frequency_analysis.py
+exploratory_tests/inspect_analysis.py
+exploratory_tests/inspect_db.py
+exploratory_tests/inspect_waveform_structure_v2.py
+exploratory_tests/inspect_waveform_structure.py
+exploratory_tests/plot_waveforms.py
+exploratory_tests/verify_access.py
+exploratory_tests/waveform_exploration.ipynb
+exploratory_tests/waveforms_comparison.png
