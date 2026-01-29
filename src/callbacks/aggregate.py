@@ -31,6 +31,7 @@ def register_aggregate_callbacks(app):
             dash.Output("bpm-boxplot", "figure"),
             dash.Output("repetition-plot", "figure"),
             dash.Output("played-songs-table", "data"),
+            dash.Output("played-songs-table", "style_data_conditional"),
             dash.Output("artist-played-table", "data"),
             dash.Output("unplayed-artists-table", "data")
         ],
@@ -38,10 +39,11 @@ def register_aggregate_callbacks(app):
             dash.Input("style-filter", "value"), 
             dash.Input("sets-dropdown", "value"),
             dash.Input("date-range-picker", "start_date"),
-            dash.Input("date-range-picker", "end_date")
+            dash.Input("date-range-picker", "end_date"),
+            dash.Input("bpm-boxplot-toggle", "value")
         ]
     )
-    def update_aggregate_dashboard(styles, selected_set_ids, start_date, end_date):
+    def update_aggregate_dashboard(styles, selected_set_ids, start_date, end_date, use_chronological_order):
         shared = get_shared_data()
         playlist_id_to_date = shared["playlist_id_to_date"]
         party_sets = shared["party_sets"]
@@ -158,8 +160,70 @@ def register_aggregate_callbacks(app):
                               coloraxis_showscale=False)
 
         # === BPM BOX PLOT ===
-        box_fig = px.box(df_exploded, x="set_date", y="bpm", points="all", title="BPM Distribution by Set")
-        box_fig.update_layout(xaxis_title="Set Date", yaxis_title="BPM")
+        # Add set style information to df_exploded for color coding
+        df_exploded['set_style'] = df_exploded['set_date'].apply(
+            lambda date: next(
+                ("Blues" if "blues" in next((p["name"] for p in party_sets if p["id"] == pid), "").lower().split(" - ")[1]
+                 else "Lindy"
+                 for pid in filtered_set_ids
+                 if playlist_id_to_date.get(pid) == date),
+                "Unknown"
+            )
+        )
+        
+        if use_chronological_order:
+            # Create chronological order mapping
+            set_dates_sorted = sorted(set(df_exploded['set_date'].dropna()))
+            date_to_order = {date: idx + 1 for idx, date in enumerate(set_dates_sorted)}
+            df_exploded['set_order'] = df_exploded['set_date'].map(date_to_order)
+            
+            box_fig = px.box(
+                df_exploded, 
+                x="set_order", 
+                y="bpm", 
+                color="set_style",
+                points="all", 
+                color_discrete_map={"Blues": "#6B9BD1", "Lindy": "#E8755F"}
+            )
+            box_fig.update_layout(
+                xaxis_title="Set Order (Chronological)", 
+                yaxis_title="BPM",
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5,
+                    title=None
+                ),
+                showlegend=True
+            )
+            # Overlay points on boxes with transparency
+            box_fig.update_traces(boxpoints='all', jitter=0.3, pointpos=0, marker=dict(opacity=0.4))
+        else:
+            box_fig = px.box(
+                df_exploded, 
+                x="set_date", 
+                y="bpm", 
+                color="set_style",
+                points="all", 
+                color_discrete_map={"Blues": "#6B9BD1", "Lindy": "#E8755F"}
+            )
+            box_fig.update_layout(
+                xaxis_title="Set Date", 
+                yaxis_title="BPM",
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5,
+                    title=None
+                ),
+                showlegend=True
+            )
+            # Overlay points on boxes
+            box_fig.update_traces(boxpoints='all', jitter=0.3, pointpos=0)
 
         # === REPETITION PLOT ===
         # Filter repetition stats to selected sets
@@ -226,7 +290,38 @@ def register_aggregate_callbacks(app):
             "dates": "Dates",
             "rating": "Rating"
         }, inplace=True)
-        played_songs_table = played_songs_table[["Times Played", "Song", "Artists", "Dates", "Rating"]]
+        
+        # Generate automatic heatmap colors for Times Played
+        if len(played_songs_table) > 0:
+            min_plays = played_songs_table["Times Played"].min()
+            max_plays = played_songs_table["Times Played"].max()
+            
+            def get_heatmap_color(value, min_val, max_val):
+                """Generate a color from cream to gold based on normalized value."""
+                if max_val == min_val:
+                    return '#F6F1EB'  # Default color if all values are the same
+                
+                # Normalize value between 0 and 1
+                normalized = (value - min_val) / (max_val - min_val)
+                
+                # Cream to Gold gradient (RGB interpolation)
+                # Start: #FEFBF3 (very light cream), End: #CBA135 (theme gold)
+                start_rgb = (254, 251, 243)  # Light cream
+                end_rgb = (203, 161, 53)      # Theme gold
+                
+                r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * normalized)
+                g = int(start_rgb[1] + (end_rgb[1] - start_rgb[1]) * normalized)
+                b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * normalized)
+                
+                return f'#{r:02x}{g:02x}{b:02x}'
+            
+            played_songs_table['_times_played_color'] = played_songs_table['Times Played'].apply(
+                lambda x: get_heatmap_color(x, min_plays, max_plays)
+            )
+        else:
+            played_songs_table['_times_played_color'] = '#F6F1EB'
+        
+        played_songs_table = played_songs_table[["Times Played", "Song", "Artists", "Dates", "Rating", "_times_played_color"]]
 
         # === TOP ARTISTS TABLE ===
         artist_counts = df_exploded.groupby('artist_list').agg(
@@ -234,12 +329,41 @@ def register_aggregate_callbacks(app):
             played_songs_per_artist=('title', 'nunique')
         ).reset_index()
         artist_counts.rename(columns={'artist_list': 'Artists'}, inplace=True)
+        
+        # Calculate ratio: songs / times played
+        artist_counts['ratio'] = (artist_counts['played_songs_per_artist'] / artist_counts['count']).round(2)
 
         # === UNPLAYED ARTISTS ===
         all_library_artists = shared.get("all_library_artists", set())
         played_artists = set(df_exploded['artist_list'].unique())
         unplayed_artists = sorted(all_library_artists - played_artists)
         unplayed_artists_table = [{"Artists": a} for a in unplayed_artists]
+        
+        # === GENERATE DYNAMIC HEATMAP STYLES ===
+        # Create style_data_conditional rules based on the _times_played_color column
+        heatmap_styles = []
+        if len(played_songs_table) > 0:
+            # Get unique combinations of Times Played values and their colors
+            color_map = played_songs_table[['Times Played', '_times_played_color']].drop_duplicates()
+            
+            for _, row in color_map.iterrows():
+                times_played_val = row['Times Played']
+                color = row['_times_played_color']
+                
+                # Determine if text should be light (for darker backgrounds)
+                # Check if color is dark enough to need light text
+                rgb_val = int(color[1:3], 16) + int(color[3:5], 16) + int(color[5:7], 16)
+                text_color = '#FFFDF8' if rgb_val < 450 else '#3A3A3A'
+                
+                heatmap_styles.append({
+                    'if': {
+                        'column_id': 'Times Played',
+                        'filter_query': f'{{Times Played}} = {times_played_val}'
+                    },
+                    'backgroundColor': color,
+                    'color': text_color,
+                    'fontWeight': 'bold' if times_played_val > 1 else 'normal'
+                })
 
         # Return all outputs
         return (
@@ -259,6 +383,7 @@ def register_aggregate_callbacks(app):
             box_fig,
             rep_fig,
             played_songs_table.to_dict('records'),
+            heatmap_styles,
             artist_counts.to_dict('records'),
             unplayed_artists_table
         )
@@ -268,7 +393,7 @@ def _empty_aggregate():
     default_fig = {}
     return ("Total Songs: 0", "Blues Sets: 0", "Lindy Sets: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
             "Top Played Artist: -", "Top Played Song: -", "Avg Duration: 0",
-            "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [])
+            "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [], [])
     
     
     

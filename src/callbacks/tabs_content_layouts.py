@@ -83,6 +83,18 @@ def aggregate_layout():
                 dbc.Row(dcc.Graph(id="bpm-histogram"))
             ], md=8,sm=12)
         ]),
+        html.Br(),
+        dbc.Row([
+            dbc.Col([
+                html.H5("BPM Distribution by Set", style={"display": "inline-block", "marginRight": "20px"}),
+                dbc.Switch(
+                    id="bpm-boxplot-toggle",
+                    label="Show Chronological Order",
+                    value=False,
+                    style={"display": "inline-block", "verticalAlign": "middle"}
+                )
+            ], sm=12, style={"display": "flex", "alignItems": "center", "justifyContent": "center"})
+        ], style={"marginBottom": "10px"}),
         dbc.Row([
             dbc.Col(dcc.Graph(id="bpm-boxplot"),sm=12)
         ]),
@@ -109,7 +121,8 @@ def aggregate_layout():
                     data=[],
                     sort_by=[{'column_id': 'Times Played', 'direction': 'desc'}],
                     sort_action="native",
-                    filter_options={"case": "insensitive"},  # Set case-insensitive filtering
+                    filter_action="native",
+                    filter_options={"case": "insensitive"},
                     page_size=30,
                     virtualization=True,
                     fixed_rows={'headers': True},
@@ -120,27 +133,95 @@ def aggregate_layout():
                         {'if': {'column_id': 'Dates'}, 'width': '120px', 'maxWidth': '150px'},
                         {'if': {'column_id': 'Rating'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
                     ],
-                style_table={
-                    'height': 800,
-                    'overflowX': 'auto',    
-                    "border": "1px solid #CBA135",
-                    "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
-                },
-                style_header={
-                    "backgroundColor": "#FFFDF8",
-                    "fontWeight": "bold",
-                    "fontFamily": "Raleway",
-                    "color": "#2C3E50"
-                },
-                style_cell={
-                    'textAlign': 'left',
-                    "fontSize": "14px",
-                    "fontFamily": "Quicksand",
-                    "backgroundColor": "#F6F1EB",
-                    "color": "#3A3A3A",
-                    "padding": "8px",
-                    "border": "none"
-                }
+                    style_data_conditional=[
+                        # Heatmap/Bar for Times Played - Light gradient
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} = 1'
+                            },
+                            'backgroundColor': '#FEFBF3',
+                            'fontWeight': 'normal'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} = 2'
+                            },
+                            'backgroundColor': '#FDF6E3',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} = 3'
+                            },
+                            'backgroundColor': '#FBF0D3',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} = 4'
+                            },
+                            'backgroundColor': '#F9E9C2',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} = 5'
+                            },
+                            'backgroundColor': '#F5E0A8',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} >= 6 && {Times Played} <= 7'
+                            },
+                            'backgroundColor': '#F0D68E',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} >= 8 && {Times Played} <= 9'
+                            },
+                            'backgroundColor': '#E8C86A',
+                            'fontWeight': 'bold'
+                        },
+                        {
+                            'if': {
+                                'column_id': 'Times Played',
+                                'filter_query': '{Times Played} >= 10'
+                            },
+                            'backgroundColor': '#CBA135',
+                            'color': '#FFFDF8',
+                            'fontWeight': 'bold'
+                        }
+                    ],
+                    style_table={
+                        'height': 800,
+                        'overflowX': 'auto',    
+                        "border": "1px solid #CBA135",
+                        "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                    },
+                    style_header={
+                        "backgroundColor": "#FFFDF8",
+                        "fontWeight": "bold",
+                        "fontFamily": "Raleway",
+                        "color": "#2C3E50"
+                    },
+                    style_cell={
+                        'textAlign': 'left',
+                        "fontSize": "14px",
+                        "fontFamily": "Quicksand",
+                        "backgroundColor": "#F6F1EB",
+                        "color": "#3A3A3A",
+                        "padding": "8px",
+                        "border": "none"
+                    }
                 ),
                 width=12
             )
@@ -157,8 +238,9 @@ def aggregate_layout():
                     id="artist-played-table",
                     columns=[
                         {"name": "Artists", "id": "Artists"},
-                        {"name": "Times Played", "id": "count", "type": "numeric"},
-                        {"name": "Songs Count", "id": "played_songs_per_artist", "type": "numeric"}
+                        {"name": "Times\nPlayed", "id": "count", "type": "numeric"},
+                        {"name": "Songs\nCount", "id": "played_songs_per_artist", "type": "numeric"},
+                        {"name": "Ratio", "id": "ratio", "type": "numeric"}
                     ],
                     data=[],
                     sort_by=[{'column_id': 'count', 'direction': 'desc'}],
@@ -168,36 +250,51 @@ def aggregate_layout():
                     virtualization=True,
                     fixed_rows={'headers': True},
                     style_cell_conditional=[
-                        {'if': {'column_id': 'standardized_artist'}, 'width': '140px', 'maxWidth': '160px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                        {'if': {'column_id': 'count'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
-                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'}
-                ],
-                style_as_list_view=True,
-                style_table={
-                    'height': 600,
-                    'overflowX': 'auto',    
-                    "border": "1px solid #CBA135",
-                    "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
-                },
-                style_header={
-                    "backgroundColor": "#FFFDF8",
-                    "fontWeight": "bold",
-                    "fontFamily": "Raleway",
-                    "color": "#2C3E50"
-                },
-                style_cell={
-                    'textAlign': 'left',
-                    "fontSize": "14px",
-                    "fontFamily": "Quicksand",
-                    "backgroundColor": "#F6F1EB",
-                    "color": "#3A3A3A",
-                    "padding": "8px",
-                    "border": "none"
-                }
+                        {'if': {'column_id': 'Artists'}, 'width': '35%', 'minWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'count'}, 'width': '22%', 'minWidth': '85px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '22%', 'minWidth': '85px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'ratio'}, 'width': '21%', 'minWidth': '70px', 'textAlign': 'center'}
+                    ],
+                    style_as_list_view=True,
+                    style_table={
+                        'height': 600,
+                        'overflowX': 'auto',    
+                        "border": "1px solid #CBA135",
+                        "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                    },
+                    style_header={
+                        "backgroundColor": "#FFFDF8",
+                        "fontWeight": "bold",
+                        "fontFamily": "Raleway",
+                        "color": "#2C3E50"
+                    },
+                    style_cell={
+                        'textAlign': 'left',
+                        "fontSize": "14px",
+                        "fontFamily": "Quicksand",
+                        "backgroundColor": "#F6F1EB",
+                        "color": "#3A3A3A",
+                        "padding": "8px",
+                        "border": "none"
+                    }
                 ),
             md=6,sm=12)
         ]),
         html.Br(),
+        dbc.Row([
+            dbc.Col(
+                dbc.Card(
+                    html.P([
+                        "💡 ",
+                        html.Strong("Artist Exploration Tip: "),
+                        "Artists with a high ratio (above 0.5) and high times played suggest an artist with many good songs in your library that you could explore more. These artists are great candidates for deeper discovery!"
+                    ], style={"margin": "0", "fontSize": "14px", "lineHeight": "1.6"}),
+                    body=True,
+                    style={"backgroundColor": "#FFF9E6", "border": "1px solid #CBA135"}
+                ),
+                width=12
+            )
+        ], style={"marginBottom": "20px"}),
         dbc.Row([
             dbc.Col(html.H4("Unplayed Artists",className="text-center"), width=12)]),
         dbc.Row([
