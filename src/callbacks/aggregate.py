@@ -15,6 +15,63 @@ def register_aggregate_callbacks(app):
 
     @app.callback(
         [
+            dash.Output("sets-collapse", "is_open"),
+            dash.Output("sets-dropdown", "value"),
+        ],
+        [
+            dash.Input("sets-collapse-btn", "n_clicks"),
+            dash.Input("select-all-sets-btn", "n_clicks"),
+            dash.Input("deselect-all-sets-btn", "n_clicks"),
+        ],
+        [
+            dash.State("sets-collapse", "is_open"),
+            dash.State("sets-dropdown", "options"),
+        ]
+    )
+    def toggle_sets_collapse(n_collapse, n_select, n_deselect, is_open, options):
+        ctx = dash.callback_context
+        if not ctx.triggered:
+            return is_open, dash.no_update
+        
+        trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        
+        if trigger_id == "sets-collapse-btn":
+            return not is_open, dash.no_update
+        
+        if trigger_id == "select-all-sets-btn":
+            all_values = [opt["value"] for opt in options]
+            return True, all_values
+            
+        if trigger_id == "deselect-all-sets-btn":
+            return True, []
+            
+        return is_open, dash.no_update
+
+    @app.callback(
+        [
+            dash.Output("sets-selection-count", "children"),
+            dash.Output("sets-selection-count", "color"),
+        ],
+        [
+            dash.Input("sets-dropdown", "value"),
+        ],
+        [
+             dash.State("sets-dropdown", "options")
+        ]
+    )
+    def update_set_selection_count(selected_values, options):
+        count = len(selected_values) if selected_values else 0
+        total = len(options) if options else 0
+        
+        if count == 0:
+            return "None", "danger"
+        if count == total:
+            return "All", "success"
+            
+        return f"{count}/{total}", "warning"
+
+    @app.callback(
+        [
             dash.Output("total-songs", "children"),
             dash.Output("total-blues-sets", "children"),
             dash.Output("total-lindy-sets", "children"),

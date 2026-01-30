@@ -52,13 +52,39 @@ def aggregate_layout():
         dbc.Row([
             dbc.Col([
                 html.H4("Filter by sets"),
-                dcc.Dropdown(
-                    id="sets-dropdown",
-                    options=options,
-                    value=default_value,  # Preselect all playlists
-                    multi=True,
-                    placeholder="Choose party sets"
-                ),
+                html.Div([
+                    dbc.Button(
+                        [
+                            "Select Party Sets ",
+                            dbc.Badge("All", color="light", text_color="primary", className="ms-1", id="sets-selection-count")
+                        ],
+                        id="sets-collapse-btn",
+                        color="secondary",
+                        className="mb-2 w-100 d-flex justify-content-between align-items-center",
+                        n_clicks=0,
+                        style={"textAlign": "left"}
+                    ),
+                    dbc.Collapse(
+                        dbc.Card(
+                            dbc.CardBody([
+                                html.Div([
+                                    dbc.Button("Select All", id="select-all-sets-btn", size="sm", color="link", className="p-0 me-3"),
+                                    dbc.Button("Deselect All", id="deselect-all-sets-btn", size="sm", color="link", className="p-0")
+                                ], className="mb-2"),
+                                html.Div(
+                                    dbc.Checklist(
+                                        id="sets-dropdown",
+                                        options=options,
+                                        value=default_value,  # Preselect all playlists
+                                    ),
+                                    style={"maxHeight": "300px", "overflowY": "auto"}
+                                )
+                            ])
+                        ),
+                        id="sets-collapse",
+                        is_open=False,
+                    )
+                ]),
             ], width=12)
         ], style={"marginBottom": "20px"}),
         dbc.Row([
