@@ -29,30 +29,34 @@ auth_manager = SpotifyClientCredentials(
 )
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
-def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
-    """Export a Mixxx playlist to Spotify."""
-    with open('config.json', 'r') as f:
-        config = json.load(f)
+def get_auth_manager():
+    """Helper to return a configured SpotifyOAuth object that doesn't hang."""
+    if os.path.exists(SECRET_FILE_PATH):
+        with open(SECRET_FILE_PATH, 'r') as f:
+            _config = json.load(f)
+    else:
+        with open('config.json', 'r') as f:
+            _config = json.load(f)
 
-    client_id = config['spotify']['client_id']
-    client_secret = config['spotify']['client_secret']
-    redirect_uri = config['spotify']['redirect_uri']
-    username = config['spotify']['usr_name']
-
-    scope = "playlist-read-private playlist-modify-public"
-    auth_manager = SpotifyOAuth(
-        client_id=client_id,
-        client_secret=client_secret,
-        redirect_uri=redirect_uri,
-        username=username,
-        scope=scope
+    return SpotifyOAuth(
+        client_id=_config['spotify']['client_id'],
+        client_secret=_config['spotify']['client_secret'],
+        redirect_uri=_config['spotify']['redirect_uri'],
+        username=_config['spotify']['usr_name'],
+        scope="playlist-read-private playlist-modify-public",
+        open_browser=False  # CRITICAL: prevents dashboard from hanging!
     )
+
+def export_mixxx_to_spotify(mixxx_playlist_id: int, playlist_name: str = None) -> str:
+    """Export a Mixxx playlist to Spotify. Returns the Spotify playlist URL."""
+    auth_manager = get_auth_manager()
     sp = spotipy.Spotify(auth_manager=auth_manager)
     user_id = sp.me()['id']
 
     mixxx_tracks = get_tracks_for_playlist(mixxx_playlist_id)
 
     track_uris = []
+    not_found = []
     for track in mixxx_tracks:
         artist = track.get("artist", "").strip()
         title = track.get("title", "").strip()
@@ -63,16 +67,30 @@ def export_mixxx_to_spotify(mixxx_playlist_id: int) -> str:
         items = res.get("tracks", {}).get("items", [])
         if items:
             track_uris.append(items[0]["uri"])
+        else:
+            not_found.append(f"{artist} — {title}")
 
-    playlist_name = f"Mixxx Set {mixxx_playlist_id}"
+    # Use the real playlist name if provided, fall back to ID
+    sp_playlist_name = playlist_name if playlist_name else f"Mixxx Set {mixxx_playlist_id}"
     playlist = sp.user_playlist_create(
         user=user_id,
-        name=playlist_name,
+        name=sp_playlist_name,
         public=True,
-        description="Imported from Mixxx"
+        description="Imported from Mixxx DJ Buddy"
     )
-    logging.info(f"Successfully created playlist: {playlist_name} with ID: {playlist['id']}")
-    return playlist['id']
+    playlist_id = playlist['id']
+
+    # Add tracks in batches of 100 (Spotify API limit)
+    if track_uris:
+        for i in range(0, len(track_uris), 100):
+            sp.playlist_add_items(playlist_id, track_uris[i:i+100])
+
+    logging.info(f"Created Spotify playlist '{sp_playlist_name}' ({playlist_id}). "
+                 f"Added {len(track_uris)} tracks. Not found: {len(not_found)}")
+    if not_found:
+        logging.warning(f"Tracks not found on Spotify: {not_found}")
+
+    return f"https://open.spotify.com/playlist/{playlist_id}"
 
 
 from src.callbacks.shared import get_shared_data
@@ -155,9 +173,31 @@ def register_individual_callbacks(app):
         if not mixxx_playlist_id:
             return dbc.Alert("⚠️ Please select a playlist first.", color="warning", dismissable=True)
 
+        # Look up the real playlist name from shared data
+        shared = get_shared_data()
+        options = shared.get("party_set_options", [])
+        playlist_name = next(
+            (opt["label"] for opt in options if opt["value"] == mixxx_playlist_id),
+            None
+        )
+
         try:
-            url = export_mixxx_to_spotify(mixxx_playlist_id)
-            return html.A("✅ Open in Spotify", href=url, target="_blank", style={"fontWeight": "bold"})
+            # Check for valid token first to avoid hanging!
+            auth_manager = get_auth_manager()
+            token_info = auth_manager.get_cached_token()
+            if not token_info:
+                auth_url = auth_manager.get_authorize_url()
+                return html.Div([
+                    dbc.Alert([
+                        "⚠️ Spotify authorization required. ",
+                        html.A("Click here to authorize", href=auth_url, target="_blank", className="alert-link"),
+                        ". After authorizing, close the new tab and click Export again."
+                    ], color="warning")
+                ])
+
+            url = export_mixxx_to_spotify(mixxx_playlist_id, playlist_name=playlist_name)
+            return html.A("✅ Open in Spotify", href=url, target="_blank",
+                          style={"fontWeight": "bold", "fontSize": "16px"})
         except Exception as e:
             return dbc.Alert(f"❌ Error exporting: {e}", color="danger", dismissable=True)
 
