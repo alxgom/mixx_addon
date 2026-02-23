@@ -79,6 +79,65 @@ def get_crates():
     conn.close()
     return [dict(crate) for crate in crates]
 
+def get_crate_counts():
+    conn = sqlite3.connect(dbpath)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    query_with_hidden = """
+        SELECT c.id, c.name, COUNT(ct.track_id) as count
+        FROM crates c
+        LEFT JOIN crate_tracks ct ON c.id = ct.crate_id
+        LEFT JOIN library lib ON ct.track_id = lib.id
+        WHERE lib.hidden = 0 OR lib.hidden IS NULL
+        GROUP BY c.id
+    """
+    try:
+        cur.execute(query_with_hidden)
+    except sqlite3.OperationalError:
+        query_without_hidden = """
+            SELECT c.id, c.name, COUNT(ct.track_id) as count
+            FROM crates c
+            LEFT JOIN crate_tracks ct ON c.id = ct.crate_id
+            GROUP BY c.id
+        """
+        cur.execute(query_without_hidden)
+    counts = cur.fetchall()
+    conn.close()
+    return {row["id"]: row["count"] for row in counts}
+
+def get_all_crates_summary():
+    conn = sqlite3.connect(dbpath)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    query_with_hidden = """
+        SELECT c.id, c.name, 
+               COUNT(ct.track_id) as total_songs,
+               AVG(lib.bpm) as avg_bpm,
+               SUM(lib.duration) as total_duration
+        FROM crates c
+        LEFT JOIN crate_tracks ct ON c.id = ct.crate_id
+        LEFT JOIN library lib ON ct.track_id = lib.id
+        WHERE (lib.hidden = 0 OR lib.hidden IS NULL)
+        GROUP BY c.id
+    """
+    try:
+        cur.execute(query_with_hidden)
+    except sqlite3.OperationalError:
+        query_without_hidden = """
+            SELECT c.id, c.name, 
+                   COUNT(ct.track_id) as total_songs,
+                   AVG(lib.bpm) as avg_bpm,
+                   SUM(lib.duration) as total_duration
+            FROM crates c
+            LEFT JOIN crate_tracks ct ON c.id = ct.crate_id
+            LEFT JOIN library lib ON ct.track_id = lib.id
+            GROUP BY c.id
+        """
+        cur.execute(query_without_hidden)
+    summary = cur.fetchall()
+    conn.close()
+    return [dict(row) for row in summary]
+
 def get_songs_not_in_crates():
     conn = sqlite3.connect(dbpath)
     conn.row_factory = sqlite3.Row
@@ -107,13 +166,22 @@ def get_songs_for_crate(crate_id):
     conn = sqlite3.connect(dbpath)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    query = """
+    query_with_hidden = """
         SELECT lib.artist, lib.title, lib.album, lib.bpm, lib.duration, lib.rating
         FROM crate_tracks ct
         JOIN library lib ON ct.track_id = lib.id
         WHERE ct.crate_id = ? AND lib.hidden = 0
     """
-    cur.execute(query, (crate_id,))
+    try:
+        cur.execute(query_with_hidden, (crate_id,))
+    except sqlite3.OperationalError:
+        query_without_hidden = """
+            SELECT lib.artist, lib.title, lib.album, lib.bpm, lib.duration, lib.rating
+            FROM crate_tracks ct
+            JOIN library lib ON ct.track_id = lib.id
+            WHERE ct.crate_id = ?
+        """
+        cur.execute(query_without_hidden, (crate_id,))
     songs = cur.fetchall()
     conn.close()
     return [dict(song) for song in songs]

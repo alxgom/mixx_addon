@@ -138,6 +138,7 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="played-songs-table",
                     columns=[
+                        {"name": "Rank", "id": "Rank", "type": "numeric"},
                         {"name": "Times\n Played", "id": "Times Played", "type": "numeric"},
                         {"name": "Song", "id": "Song"},
                         {"name": "Artists", "id": "Artists"},
@@ -153,80 +154,14 @@ def aggregate_layout():
                     virtualization=True,
                     fixed_rows={'headers': True},
                     style_cell_conditional=[
+                        {'if': {'column_id': 'Rank'}, 'width': '30px', 'maxWidth': '40px', 'textAlign': 'center'},
                         {'if': {'column_id': 'Times Played'}, 'width': '20px', 'maxWidth': '40px','textAlign': 'center'},
-                        {'if': {'column_id': 'Song'}, 'width': '180px', 'maxWidth': '230px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'Song'}, 'width': '160px', 'maxWidth': '210px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'Artists'}, 'width': '100px', 'maxWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                         {'if': {'column_id': 'Dates'}, 'width': '120px', 'maxWidth': '150px'},
                         {'if': {'column_id': 'Rating'}, 'width': '30px', 'maxWidth': '40px','textAlign': 'center'}
                     ],
-                    style_data_conditional=[
-                        # Heatmap/Bar for Times Played - Light gradient
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} = 1'
-                            },
-                            'backgroundColor': '#FEFBF3',
-                            'fontWeight': 'normal'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} = 2'
-                            },
-                            'backgroundColor': '#FDF6E3',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} = 3'
-                            },
-                            'backgroundColor': '#FBF0D3',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} = 4'
-                            },
-                            'backgroundColor': '#F9E9C2',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} = 5'
-                            },
-                            'backgroundColor': '#F5E0A8',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} >= 6 && {Times Played} <= 7'
-                            },
-                            'backgroundColor': '#F0D68E',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} >= 8 && {Times Played} <= 9'
-                            },
-                            'backgroundColor': '#E8C86A',
-                            'fontWeight': 'bold'
-                        },
-                        {
-                            'if': {
-                                'column_id': 'Times Played',
-                                'filter_query': '{Times Played} >= 10'
-                            },
-                            'backgroundColor': '#CBA135',
-                            'color': '#FFFDF8',
-                            'fontWeight': 'bold'
-                        }
-                    ],
+                    style_data_conditional=[],
                     style_table={
                         'height': 800,
                         'overflowX': 'auto',    
@@ -263,6 +198,7 @@ def aggregate_layout():
                 dash_table.DataTable(
                     id="artist-played-table",
                     columns=[
+                        {"name": "Rank", "id": "Rank", "type": "numeric"},
                         {"name": "Artists", "id": "Artists"},
                         {"name": "Times\nPlayed", "id": "count", "type": "numeric"},
                         {"name": "Songs\nCount", "id": "played_songs_per_artist", "type": "numeric"},
@@ -276,10 +212,11 @@ def aggregate_layout():
                     virtualization=True,
                     fixed_rows={'headers': True},
                     style_cell_conditional=[
-                        {'if': {'column_id': 'Artists'}, 'width': '35%', 'minWidth': '120px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                        {'if': {'column_id': 'count'}, 'width': '22%', 'minWidth': '85px', 'textAlign': 'center'},
-                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '22%', 'minWidth': '85px', 'textAlign': 'center'},
-                        {'if': {'column_id': 'ratio'}, 'width': '21%', 'minWidth': '70px', 'textAlign': 'center'}
+                        {'if': {'column_id': 'Rank'}, 'width': '10%', 'minWidth': '40px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'Artists'}, 'width': '30%', 'minWidth': '100px', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                        {'if': {'column_id': 'count'}, 'width': '20%', 'minWidth': '70px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'played_songs_per_artist'}, 'width': '20%', 'minWidth': '70px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'ratio'}, 'width': '20%', 'minWidth': '70px', 'textAlign': 'center'}
                     ],
                     style_as_list_view=True,
                     style_table={
@@ -360,18 +297,71 @@ def aggregate_layout():
 
 def crates_layout():
     return html.Div([
-        html.H3("Crate Analysis"),
-        dcc.Graph(id="crate-structure-chart"),
+        dbc.Row(
+            [
+                dbc.Col(html.H3("Crate Analysis", className="mb-0"), width=8),
+                dbc.Col(
+                    dbc.RadioItems(
+                        id="chart-type-toggle",
+                        options=[
+                            {"label": "Sunburst", "value": "sunburst"},
+                            {"label": "Icicle", "value": "icicle"},
+                        ],
+                        value="sunburst",
+                        inline=True,
+                    ),
+                    width=4,
+                    className="d-flex align-items-center justify-content-end",
+                ),
+            ],
+            className="mb-2 align-items-center"
+        ),
+        dcc.Graph(id="crate-structure-chart", style={"height": "65vh", "width": "100%", "marginBottom": "20px"}),
         dbc.Row([
             dbc.Col(
-                dash_table.DataTable(
-                    id="crate-structure-table",
-                    columns=[{"name": "Crate Path", "id": "Crate Path"}],
-                    data=[],
-                    page_size=20,
-                    style_table={'height': '300px', 'overflowY': 'auto'}
-                ),
-                width=6
+                [
+                    html.H4("Crate Summaries"),
+                    dash_table.DataTable(
+                        id="crate-structure-table",
+                        columns=[
+                            {"name": "Crate Path", "id": "Crate Path"},
+                            {"name": "Songs", "id": "Total Songs", "type": "numeric"}
+                        ],
+                        data=[],
+                        page_size=20,
+                        row_selectable="single",
+                        fixed_rows={'headers': True},
+                        style_cell_conditional=[
+                            {'if': {'column_id': 'Total Songs'}, 'width': '50px', 'maxWidth': '60px', 'textAlign': 'center'},
+                            {'if': {'column_id': 'Crate Path'}, 'minWidth': '150px', 'width': '80%'},
+                        ],
+                        style_table={
+                            'height': '400px',
+                            'overflowY': 'auto',
+                            "border": "1px solid #CBA135",
+                            "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                        },
+                        style_header={
+                            "backgroundColor": "#FFFDF8",
+                            "fontWeight": "bold",
+                            "fontFamily": "Raleway",
+                            "color": "#2C3E50"
+                        },
+                        style_cell={
+                            'textAlign': 'left',
+                            "fontSize": "14px",
+                            "fontFamily": "Quicksand",
+                            "backgroundColor": "#F6F1EB",
+                            "color": "#3A3A3A",
+                            "padding": "8px",
+                            "border": "none",
+                            'whiteSpace': 'normal',
+                            'overflow': 'hidden',
+                            'textOverflow': 'ellipsis'
+                        }
+                    )
+                ],
+                width=4
             ),
             dbc.Col(
                 html.Div([
@@ -381,16 +371,47 @@ def crates_layout():
                         columns=[
                             {"name": "Artist", "id": "artist"},
                             {"name": "Title", "id": "title"},
-                            {"name": "BPM", "id": "bpm"},
+                            {"name": "BPM", "id": "bpm", "type":"numeric", "format":Format(precision=2, scheme=Scheme.decimal_integer)},
                             {"name": "Duration", "id": "duration"},
                             {"name": "Rating", "id": "rating"}
                         ],
                         data=[],
-                        page_size=20,
-                        style_table={'height': '300px', 'overflowY': 'auto'}
+                        page_size=50,
+                        fixed_rows={'headers': True},
+                        style_cell_conditional=[
+                            {'if': {'column_id': 'rating'}, 'width': '30px', 'maxWidth': '30px','textAlign': 'center'},
+                            {'if': {'column_id': 'bpm'}, 'width': '40px', 'maxWidth': '50px','textAlign': 'center'},
+                            {'if': {'column_id': 'duration'}, 'width': '50px', 'maxWidth': '60px','textAlign': 'center'},
+                            {'if': {'column_id': 'artist'}, 'minWidth': '100px', 'width': '30%'},
+                            {'if': {'column_id': 'title'}, 'minWidth': '100px', 'width': '40%'},
+                        ],
+                        style_table={
+                            'height': '400px',
+                            'overflowY': 'auto',
+                            "border": "1px solid #CBA135",
+                            "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+                        },
+                        style_header={
+                            "backgroundColor": "#FFFDF8",
+                            "fontWeight": "bold",
+                            "fontFamily": "Raleway",
+                            "color": "#2C3E50"
+                        },
+                        style_cell={
+                            'textAlign': 'left',
+                            "fontSize": "14px",
+                            "fontFamily": "Quicksand",
+                            "backgroundColor": "#F6F1EB",
+                            "color": "#3A3A3A",
+                            "padding": "8px",
+                            "border": "none",
+                            'whiteSpace': 'normal',
+                            'overflow': 'hidden',
+                            'textOverflow': 'ellipsis'
+                        }
                     )
                 ]),
-                width=6
+                width=8
             )
         ]),
         html.Hr(),
@@ -401,13 +422,45 @@ def crates_layout():
                 {"name": "Artist", "id": "artist"},
                 {"name": "Title", "id": "title"},
                 {"name": "Album", "id": "album"},
-                {"name": "BPM", "id": "bpm"},
+                {"name": "BPM", "id": "bpm", "type":"numeric", "format":Format(precision=2, scheme=Scheme.decimal_integer)},
                 {"name": "Duration", "id": "duration"},
                 {"name": "Rating", "id": "rating"}
             ],
             data=[],
-            page_size=20,
-            style_table={'height': '400px', 'overflowY': 'auto'}
+            page_size=50,
+            fixed_rows={'headers': True},
+            style_cell_conditional=[
+                {'if': {'column_id': 'rating'}, 'width': '30px', 'maxWidth': '30px','textAlign': 'center'},
+                {'if': {'column_id': 'bpm'}, 'width': '40px', 'maxWidth': '50px','textAlign': 'center'},
+                {'if': {'column_id': 'duration'}, 'width': '50px', 'maxWidth': '60px','textAlign': 'center'},
+                {'if': {'column_id': 'artist'}, 'minWidth': '100px', 'width': '25%'},
+                {'if': {'column_id': 'title'}, 'minWidth': '100px', 'width': '30%'},
+                {'if': {'column_id': 'album'}, 'minWidth': '100px', 'width': '25%'}
+            ],
+            style_table={
+                'height': '500px',
+                'overflowY': 'auto',
+                "border": "1px solid #CBA135",
+                "boxShadow": "0 2px 6px rgba(0,0,0,0.1)"
+            },
+            style_header={
+                "backgroundColor": "#FFFDF8",
+                "fontWeight": "bold",
+                "fontFamily": "Raleway",
+                "color": "#2C3E50"
+            },
+            style_cell={
+                'textAlign': 'left',
+                "fontSize": "14px",
+                "fontFamily": "Quicksand",
+                "backgroundColor": "#F6F1EB",
+                "color": "#3A3A3A",
+                "padding": "8px",
+                "border": "none",
+                'whiteSpace': 'normal',
+                'overflow': 'hidden',
+                'textOverflow': 'ellipsis'
+            }
         )
     ])
 

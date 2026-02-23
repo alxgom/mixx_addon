@@ -90,6 +90,7 @@ def register_aggregate_callbacks(app):
             dash.Output("played-songs-table", "data"),
             dash.Output("played-songs-table", "style_data_conditional"),
             dash.Output("artist-played-table", "data"),
+            dash.Output("artist-played-table", "style_data_conditional"),
             dash.Output("unplayed-artists-table", "data")
         ],
         [
@@ -330,7 +331,20 @@ def register_aggregate_callbacks(app):
                 marker=dict(size=8),
                 hovertemplate="<b>%{customdata[0]}</b><br>Date: %{customdata[1]}<br>Set Order: %{x}<br>Percentage: %{y:.0f}%<extra></extra>"
             ) 
-            rep_fig.update_layout(xaxis_title="Set Sequence (Order)", yaxis_title="Percentage (%)", yaxis_range=[0, 100])
+            rep_fig.update_layout(
+                xaxis_title="Set Sequence (Order)", 
+                yaxis_title="Percentage (%)", 
+                yaxis_range=[0, 100],
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5,
+                    title=None
+                ),
+                showlegend=True
+            )
         else:
             rep_fig = {}
 
@@ -378,7 +392,9 @@ def register_aggregate_callbacks(app):
         else:
             played_songs_table['_times_played_color'] = '#F6F1EB'
         
-        played_songs_table = played_songs_table[["Times Played", "Song", "Artists", "Dates", "Rating", "_times_played_color"]]
+        played_songs_table = played_songs_table.sort_values(by="Times Played", ascending=False).reset_index(drop=True)
+        played_songs_table.insert(0, "Rank", played_songs_table.index + 1)
+        played_songs_table = played_songs_table[["Rank", "Times Played", "Song", "Artists", "Dates", "Rating", "_times_played_color"]]
 
         # === TOP ARTISTS TABLE ===
         artist_counts = df_exploded.groupby('artist_list').agg(
@@ -389,6 +405,10 @@ def register_aggregate_callbacks(app):
         
         # Calculate ratio: songs / times played
         artist_counts['ratio'] = (artist_counts['played_songs_per_artist'] / artist_counts['count']).round(2)
+        
+        # Sort and add Rank
+        artist_counts = artist_counts.sort_values(by="count", ascending=False).reset_index(drop=True)
+        artist_counts.insert(0, "Rank", artist_counts.index + 1)
 
         # === UNPLAYED ARTISTS ===
         all_library_artists = shared.get("all_library_artists", set())
@@ -396,30 +416,62 @@ def register_aggregate_callbacks(app):
         unplayed_artists = sorted(all_library_artists - played_artists)
         unplayed_artists_table = [{"Artists": a} for a in unplayed_artists]
         
-        # === GENERATE DYNAMIC HEATMAP STYLES ===
-        # Create style_data_conditional rules based on the _times_played_color column
-        heatmap_styles = []
+        # === GENERATE DYNAMIC BAR STYLES FOR TIMES PLAYED ===
+        bar_styles = []
         if len(played_songs_table) > 0:
-            # Get unique combinations of Times Played values and their colors
-            color_map = played_songs_table[['Times Played', '_times_played_color']].drop_duplicates()
-            
-            for _, row in color_map.iterrows():
-                times_played_val = row['Times Played']
-                color = row['_times_played_color']
-                
-                # Determine if text should be light (for darker backgrounds)
-                # Check if color is dark enough to need light text
-                rgb_val = int(color[1:3], 16) + int(color[3:5], 16) + int(color[5:7], 16)
-                text_color = '#FFFDF8' if rgb_val < 450 else '#3A3A3A'
-                
-                heatmap_styles.append({
+            max_plays = played_songs_table['Times Played'].astype(float).max()
+            for val in played_songs_table['Times Played'].unique():
+                percentage = int((float(val) / max_plays) * 100) if max_plays > 0 else 0
+                bar_styles.append({
                     'if': {
                         'column_id': 'Times Played',
-                        'filter_query': f'{{Times Played}} = {times_played_val}'
+                        'filter_query': f'{{Times Played}} = {val}'
+                    },
+                    'background': f'linear-gradient(90deg, #CBA135 0%, #CBA135 {percentage}%, transparent {percentage}%, transparent 100%)',
+                    'fontWeight': 'bold' if val > 1 else 'normal',
+                    'paddingBottom': 2,
+                    'paddingTop': 2
+                })
+
+        # === GENERATE DYNAMIC HEATMAP STYLES FOR ARTIST RATIO ===
+        artist_heatmap_styles = []
+        if len(artist_counts) > 0:
+            heatmap_floor = 0.4
+            max_ratio = float(artist_counts['ratio'].max())
+            effective_max = max(max_ratio, heatmap_floor + 0.01) # Avoid div by zero
+            
+            for val in artist_counts['ratio'].unique():
+                val_float = float(val)
+                
+                # We only want to highlight artists with a ratio >= 0.4
+                if val_float < heatmap_floor:
+                    continue
+                    
+                # Normalize between 0.4 and max_ratio
+                normalized = (val_float - heatmap_floor) / (effective_max - heatmap_floor)
+                # Cap between 0.0 and 1.0 just in case
+                normalized = min(max(normalized, 0.0), 1.0)
+                
+                # Colors: #F6F1EB (Light) to #CBA135 (Gold)
+                start_rgb = (246, 241, 235)
+                end_rgb = (203, 161, 53)
+                
+                r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * normalized)
+                g = int(start_rgb[1] + (end_rgb[1] - start_rgb[1]) * normalized)
+                b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * normalized)
+                
+                color = f'#{r:02x}{g:02x}{b:02x}'
+                rgb_val = r + g + b
+                text_color = '#FFFDF8' if rgb_val < 450 else '#3A3A3A'
+                
+                artist_heatmap_styles.append({
+                    'if': {
+                        'column_id': 'ratio',
+                        'filter_query': f'{{ratio}} = {val}'
                     },
                     'backgroundColor': color,
                     'color': text_color,
-                    'fontWeight': 'bold' if times_played_val > 1 else 'normal'
+                    'fontWeight': 'bold'
                 })
 
         # Return all outputs
@@ -439,9 +491,10 @@ def register_aggregate_callbacks(app):
             bar_fig,
             box_fig,
             rep_fig,
-            played_songs_table.to_dict('records'),
-            heatmap_styles,
+            played_songs_table.drop(columns=['_times_played_color'], errors='ignore').to_dict('records'),
+            bar_styles,
             artist_counts.to_dict('records'),
+            artist_heatmap_styles,
             unplayed_artists_table
         )
 
@@ -450,7 +503,7 @@ def _empty_aggregate():
     default_fig = {}
     return ("Total Songs: 0", "Blues Sets: 0", "Lindy Sets: 0", "Unique Songs: 0", "Unique Artists: 0", "Avg BPM: 0",
             "Top Played Artist: -", "Top Played Song: -", "Avg Duration: 0",
-            "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [], [])
+            "-", "-", default_fig, default_fig, default_fig, default_fig, [], [], [], [], [])
     
     
     

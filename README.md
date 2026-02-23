@@ -34,6 +34,7 @@ Deep dive into specific sets to analyze the flow of the night.
 - **Track Sequence**: Visualize the order of songs played.
 - **BPM flow**: View the tempo progression throughout the set.
 - **Duration & Ratings**: Review track lengths and your own ratings.
+- **Spotify Export**: Recreate your DJ sets as public Spotify playlists with a single click via OAuth integration.
 
 ### 3. Library Content
 
