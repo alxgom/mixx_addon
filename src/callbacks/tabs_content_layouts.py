@@ -458,13 +458,14 @@ def individual_layout():
                     fixed_rows={'headers': True},
                     page_size=40,
                     style_cell_conditional=[
-                        {'if': {'column_id': 'times_played'}, 'width': '50px', 'maxWidth': '50px', 'textAlign': 'center'},
-                        {'if': {'column_id': 'title'}, 'width': '200px', 'maxWidth': '280px'},
-                        {'if': {'column_id': 'artist'}, 'width': '200px', 'maxWidth': '280px'},
-                        {'if': {'column_id': 'album'}, 'width': '200px', 'maxWidth': '280px'},
-                        {'if': {'column_id': 'bpm'}, 'width': '70px', 'maxWidth': '70px','textAlign': 'center'},
-                        {'if': {'column_id': 'play'}, 'width': '100px', 'maxWidth': '100px','textAlign': 'center','color': '#81b71a','fontWeight': 'bold'},
-                ],
+                        {'if': {'column_id': 'times_played'}, 'width': '40px', 'maxWidth': '50px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'title'}, 'minWidth': '120px', 'width': '30%'},
+                        {'if': {'column_id': 'artist'}, 'minWidth': '120px', 'width': '25%'},
+                        {'if': {'column_id': 'album'}, 'minWidth': '120px', 'width': '25%'},
+                        {'if': {'column_id': 'bpm'}, 'width': '40px', 'maxWidth': '60px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'duration'}, 'width': '50px', 'maxWidth': '70px', 'textAlign': 'center'},
+                        {'if': {'column_id': 'play'}, 'width': '40px', 'maxWidth': '60px', 'textAlign': 'center', 'color': '#81b71a', 'fontWeight': 'bold'},
+                    ],
                     style_data_conditional=[
                         # Conditional formatting for Times Played (Theme Colors)
                         {
