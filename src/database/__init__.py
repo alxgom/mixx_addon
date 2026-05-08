@@ -5,5 +5,5 @@ from .database import (
     get_songs_not_in_crates,
     get_library_songs,
     format_duration,
-    join_dates
+    join_dates_with_gaps
 )

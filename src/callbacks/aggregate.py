@@ -3,7 +3,7 @@ import dash
 #from dash import dcc, html, dash_table, no_update
 import plotly.express as px
 import pandas as pd
-from src.database.database import get_tracks_for_playlist, format_duration, join_dates
+from src.database.database import get_tracks_for_playlist, format_duration, join_dates_with_gaps
 from src.callbacks.shared import get_shared_data, clean_and_split_artists
 from src.callbacks.plotly_template import register_swing_theme
 
@@ -141,25 +141,47 @@ def register_aggregate_callbacks(app):
         for set_id in filtered_set_ids:
             tracks = get_tracks_for_playlist(set_id)
             set_date = playlist_id_to_date.get(set_id)
+            
+            # Extract metadata from playlist name (Date - Style - Place - Order)
+            pl = next((p for p in party_sets if p["id"] == set_id), None)
+            pl_name = pl["name"] if pl else ""
+            parts = [p.strip() for p in pl_name.split(" - ")]
+            # We capitalize style for better display (Blues/Lindy)
+            style_raw = parts[1].lower() if len(parts) > 1 else ""
+            set_style = "Blues" if "blues" in style_raw else "Lindy"
+            set_place = parts[2] if len(parts) > 2 else "Unknown"
+            session_order = parts[3] if len(parts) > 3 else "N/A"
+
             for track in tracks:
                 track["set_date"] = set_date
+                track["set_style"] = set_style
+                track["set_place"] = set_place
+                track["session_order"] = session_order
                 all_tracks.append(track)
-        if not all_tracks:
-            return _empty_aggregate()
+            if not all_tracks:
+                return _empty_aggregate()
 
         df = pd.DataFrame(all_tracks)
         df["bpm"] = pd.to_numeric(df["bpm"], errors="coerce")
         df["duration"] = pd.to_numeric(df["duration"], errors="coerce")
 
         # === EXPLODE ARTISTS ===
-       
+
         df['artist_list'] = df['artist'].apply(clean_and_split_artists)
         df_exploded = df.explode('artist_list')
 
         df_exploded = df_exploded[df_exploded["artist_list"].notna() & (df_exploded["artist_list"] != "")]
 
+        # Rounded BPM for tooltip
+        df_exploded["bpm_rounded"] = df_exploded["bpm"].round().fillna(0).astype(int)
+
+        # Create chronological order mapping
+        set_dates_sorted = sorted(set(df_exploded['set_date'].dropna()))
+        date_to_order = {date: idx + 1 for idx, date in enumerate(set_dates_sorted)}
+        df_exploded['set_order'] = df_exploded['set_date'].map(date_to_order)
 
         # === STATISTICS ===
+
         total_songs = len(df)
         unique_songs = len(df.drop_duplicates(subset=["artist", "album", "title"]))
         unique_artists = df_exploded["artist_list"].nunique()
@@ -206,7 +228,8 @@ def register_aggregate_callbacks(app):
             slowest_song = "-"
 
         # === HISTOGRAM ===
-        hist_fig = px.histogram(df_exploded, x="bpm", nbins=20, title="BPM Distribution")
+        hist_fig = px.histogram(df_exploded, x="bpm", title="BPM Distribution")
+        hist_fig.update_traces(xbins=dict(size=15))
         hist_fig.update_layout(xaxis_title="BPM", yaxis_title="Count",xaxis_range=[30, None] )
 
         # === TOP ARTISTS BAR PLOT ===
@@ -230,17 +253,21 @@ def register_aggregate_callbacks(app):
         )
         
         if use_chronological_order:
-            # Create chronological order mapping
-            set_dates_sorted = sorted(set(df_exploded['set_date'].dropna()))
-            date_to_order = {date: idx + 1 for idx, date in enumerate(set_dates_sorted)}
-            df_exploded['set_order'] = df_exploded['set_date'].map(date_to_order)
-            
             box_fig = px.box(
                 df_exploded, 
                 x="set_order", 
                 y="bpm", 
                 color="set_style",
                 points="all", 
+                hover_data={
+                    "set_date": "|%d/%m/%y",
+                    "set_place": True,
+                    "session_order": True,
+                    "bpm_rounded": True,
+                    "bpm": False, # Hide raw float BPM
+                    "set_style": False,
+                    "set_order": False
+                },
                 color_discrete_map={"Blues": "#6B9BD1", "Lindy": "#E8755F"}
             )
             box_fig.update_layout(
@@ -257,7 +284,10 @@ def register_aggregate_callbacks(app):
                 showlegend=True
             )
             # Overlay points on boxes with transparency
-            box_fig.update_traces(boxpoints='all', jitter=0.3, pointpos=0, marker=dict(opacity=0.4))
+            box_fig.update_traces(
+                boxpoints='all', jitter=0.3, pointpos=0, marker=dict(opacity=0.4),
+                hovertemplate="<b>%{customdata[0]}</b><br>Place: %{customdata[1]}<br>Order: %{customdata[2]}<br>BPM: %{customdata[3]}<extra></extra>"
+            )
         else:
             box_fig = px.box(
                 df_exploded, 
@@ -265,6 +295,14 @@ def register_aggregate_callbacks(app):
                 y="bpm", 
                 color="set_style",
                 points="all", 
+                hover_data={
+                    "set_date": False, # Exclude since it is X
+                    "set_place": True,
+                    "session_order": True,
+                    "bpm_rounded": True,
+                    "bpm": False, # Hide raw float BPM
+                    "set_style": False
+                },
                 color_discrete_map={"Blues": "#6B9BD1", "Lindy": "#E8755F"}
             )
             box_fig.update_layout(
@@ -281,7 +319,11 @@ def register_aggregate_callbacks(app):
                 showlegend=True
             )
             # Overlay points on boxes
-            box_fig.update_traces(boxpoints='all', jitter=0.3, pointpos=0)
+            box_fig.update_traces(
+                boxpoints='all', jitter=0.3, pointpos=0,
+                hovertemplate="<b>%{x|%d/%m/%y}</b><br>Place: %{customdata[0]}<br>Order: %{customdata[1]}<br>BPM: %{customdata[2]}<extra></extra>"
+            )
+
 
         # === REPETITION PLOT ===
         # Filter repetition stats to selected sets
@@ -351,7 +393,7 @@ def register_aggregate_callbacks(app):
         # === PLAYED SONGS TABLE ===
         played_songs_table = df.groupby(["artist", "title"]).agg(
             times_played=("title", "size"),
-            dates=("set_date", join_dates),
+            dates=("set_date", join_dates_with_gaps),
             rating=("rating", "max")
         ).reset_index()
         played_songs_table.rename(columns={
@@ -416,19 +458,54 @@ def register_aggregate_callbacks(app):
         unplayed_artists = sorted(all_library_artists - played_artists)
         unplayed_artists_table = [{"Artists": a} for a in unplayed_artists]
         
-        # === GENERATE DYNAMIC BAR STYLES FOR TIMES PLAYED ===
-        bar_styles = []
+        # === GENERATE DYNAMIC HEATMAP STYLES FOR TIMES PLAYED ===
+        table_styles = []
         if len(played_songs_table) > 0:
-            max_plays = played_songs_table['Times Played'].astype(float).max()
+            min_plays = played_songs_table["Times Played"].min()
+            max_plays = played_songs_table["Times Played"].max()
+            
             for val in played_songs_table['Times Played'].unique():
-                percentage = int((float(val) / max_plays) * 100) if max_plays > 0 else 0
-                bar_styles.append({
+                # Normalize value between 0 and 1
+                if max_plays == min_plays:
+                    normalized = 0
+                else:
+                    normalized = (val - min_plays) / (max_plays - min_plays)
+                
+                start_rgb = (246, 241, 235)  # Light cream (#F6F1EB)
+                end_rgb = (203, 161, 53)      # Theme gold (#CBA135)
+                
+                r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * normalized)
+                g = int(start_rgb[1] + (end_rgb[1] - start_rgb[1]) * normalized)
+                b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * normalized)
+                
+                color = f'#{r:02x}{g:02x}{b:02x}'
+                rgb_val = r + g + b
+                text_color = '#FFFDF8' if rgb_val < 450 else '#3A3A3A'
+                
+                table_styles.append({
                     'if': {
                         'column_id': 'Times Played',
                         'filter_query': f'{{Times Played}} = {val}'
                     },
+                    'backgroundColor': color,
+                    'color': text_color,
+                    'fontWeight': 'bold'
+                })
+
+        # === GENERATE DYNAMIC BAR STYLES FOR RATING ===
+        if len(played_songs_table) > 0:
+            max_rating = played_songs_table['Rating'].dropna().astype(float).max()
+            if pd.isna(max_rating):
+                max_rating = 5.0 # fallback
+            for val in played_songs_table['Rating'].dropna().unique():
+                percentage = int((float(val) / max_rating) * 100) if max_rating > 0 else 0
+                table_styles.append({
+                    'if': {
+                        'column_id': 'Rating',
+                        'filter_query': f'{{Rating}} = {val}'
+                    },
                     'background': f'linear-gradient(90deg, #CBA135 0%, #CBA135 {percentage}%, transparent {percentage}%, transparent 100%)',
-                    'fontWeight': 'bold' if val > 1 else 'normal',
+                    'fontWeight': 'bold' if val > 0 else 'normal',
                     'paddingBottom': 2,
                     'paddingTop': 2
                 })
@@ -492,7 +569,7 @@ def register_aggregate_callbacks(app):
             box_fig,
             rep_fig,
             played_songs_table.drop(columns=['_times_played_color'], errors='ignore').to_dict('records'),
-            bar_styles,
+            table_styles,
             artist_counts.to_dict('records'),
             artist_heatmap_styles,
             unplayed_artists_table

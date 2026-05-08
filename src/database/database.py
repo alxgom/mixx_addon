@@ -207,6 +207,36 @@ def format_duration(seconds):
     secs = seconds % 60
     return f"{hrs:02d}:{mins:02d}:{secs:02d}"
 
-def join_dates(x):
-    dates = [d.strftime('%Y-%m-%d') for d in x if d is not None]
-    return ", ".join(sorted(dates))
+def join_dates_with_gaps(dates_list):
+    """
+    Joins a list of dates into a single string with custom separators based on the gap between plays:
+    - ' > '  : Gap < 2 months (Frequent play)
+    - ' -> ' : Gap 2-6 months (Occasional play)
+    - ' --> ': Gap > 6 months (Long hiatus)
+    Dates are formatted as DD/MM/YY and sorted chronologically.
+    """
+    # Filter out None and sort chronologically
+    valid_dates = sorted([d for d in dates_list if d is not None])
+    if not valid_dates:
+        return ""
+    
+    formatted_parts = []
+    for i in range(len(valid_dates)):
+        current_date = valid_dates[i]
+        formatted_parts.append(current_date.strftime('%d/%m/%y'))
+        
+        if i < len(valid_dates) - 1:
+            next_date = valid_dates[i+1]
+            diff_days = (next_date - current_date).days
+            
+            # Approx 30 days per month
+            if diff_days < 60: # less than 2 months
+                sep = " > "
+            elif diff_days < 180: # between 2 and 6 months
+                sep = " -> "
+            else: # more than 6 months
+                sep = " --> "
+            
+            formatted_parts.append(sep)
+            
+    return "".join(formatted_parts)

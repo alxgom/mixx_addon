@@ -131,6 +131,15 @@ def aggregate_layout():
         html.Br(),
         dbc.Row([
             dbc.Col(html.H4("Most played songs",className="text-center"), width=12),
+            dbc.Col(
+                html.P([
+                    html.B("Date Separation: "),
+                    html.Span("'>' < 2 months, "),
+                    html.Span("'->' 2-6 months, "),
+                    html.Span("'-->' > 6 months hiatus"),
+                ], className="text-center text-muted", style={"fontSize": "small", "marginBottom": "10px"}),
+                width=12
+            ),
             dbc.Col(dbc.Card(html.H4(id="top-played-song", children="Top Played Song: -"), body=True), width=12)
         ], style={"marginTop": "20px"}),
         dbc.Row([           
