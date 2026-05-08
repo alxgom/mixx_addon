@@ -14,8 +14,6 @@ from src.layouts.layout import get_layout
 from src.callbacks import register_callbacks, party_set_options, default_start, default_end
 from src.db.notes_db import init_db, upsert_note
 from flask import request
-import webbrowser
-from waitress import serve
 
 from src.paths import get_resource_path
 
@@ -45,6 +43,9 @@ app.layout = get_layout(party_set_options, default_start, default_end)
 register_callbacks(app)
 
 if __name__ == '__main__':
+    import webbrowser
+    from waitress import serve
+    
     port = 8050
     url = f"http://127.0.0.1:{port}"
     

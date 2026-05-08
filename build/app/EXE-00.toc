@@ -75,7 +75,7 @@
  [],
  False,
  False,
- 1778254066,
+ 1778258391,
  [('runw.exe',
    'C:\\DEV\\mixx_addon\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],
