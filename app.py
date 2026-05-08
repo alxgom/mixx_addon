@@ -6,15 +6,26 @@
 
 
 
+import os
+import sys
 from dash import Dash
 import dash_bootstrap_components as dbc
 from src.layouts.layout import get_layout
 from src.callbacks import register_callbacks, party_set_options, default_start, default_end
 from src.db.notes_db import init_db, upsert_note
 from flask import request
+import webbrowser
+from waitress import serve
+
+from src.paths import get_resource_path
 
 init_db()  # ensures database and table exist
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+app = Dash(
+    __name__, 
+    external_stylesheets=[dbc.themes.BOOTSTRAP], 
+    suppress_callback_exceptions=True,
+    assets_folder=get_resource_path('assets')
+)
 server = app.server #expose to flask
 
 @server.before_request
@@ -34,4 +45,17 @@ app.layout = get_layout(party_set_options, default_start, default_end)
 register_callbacks(app)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = 8050
+    url = f"http://127.0.0.1:{port}"
+    
+    if getattr(sys, 'frozen', False):
+        # Production build (executable)
+        print(f"Starting production server on {url}")
+        webbrowser.open(url)
+        serve(app.server, host='127.0.0.1', port=port)
+    else:
+        # Development mode (running app.py directly)
+        # Timer helps ensure the server is up before the browser opens
+        from threading import Timer
+        Timer(1, lambda: webbrowser.open(url)).start()
+        app.run(debug=True, port=port)

@@ -3,9 +3,10 @@ import sqlite3
 import datetime
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__name__))
+from src.paths import get_data_path
+
 DB_PATH = r"C:\Users\Alexis\AppData\Local\Mixxx\mixxxdb.sqlite"
-DB_PATH_test= os.path.join(BASE_DIR, 'mixxxdb_subset.sqlite')
+DB_PATH_test= get_data_path('mixxxdb_subset.sqlite')
 
 if os.path.isfile(DB_PATH):
     dbpath = DB_PATH

@@ -4,8 +4,10 @@ import sqlite3
 from datetime import datetime
 
 
-DB_DIR = os.path.dirname(__file__)  # points to src/cb
-DB_PATH = os.path.join(DB_DIR, "extra_features.sqlite")
+from src.paths import get_data_path
+
+# Points to the root data directory if bundled, or src/db if in dev
+DB_PATH = get_data_path(os.path.join("src", "db", "extra_features.sqlite"))
 
 
 def init_db():

@@ -56,3 +56,28 @@ An online example with a subset of data can be found here:
 
 - **AI Metadata Enhancement**: Use external APIs or AI tools to enrich library data (e.g., finding original recording dates, identifying band members/personnel, classifying sub-genres like Big Band vs. Small Combo).
 - **Advanced Crate Analysis**: More detailed insights into how tracks are organized.
+
+## Compilation (Building the Executable)
+
+You can compile this application into a standalone Windows executable (`.exe`). This allows you to run the dashboard without needing to install Python or Poetry on the target machine.
+
+### Prerequisites
+- Python 3.12+
+- [Poetry](https://python-poetry.org/)
+
+### Steps to Build
+1. **Install dependencies**:
+   ```bash
+   poetry install
+   ```
+2. **Run the build command**:
+   ```bash
+   poetry run pyinstaller --onedir --noconsole --add-data "assets;assets" app.py --noconfirm --clean
+   ```
+3. **Copy required files**:
+   After the build finishes, you need to manually copy your configuration and private database into the `dist/app/` folder:
+   - Copy `config.json` into `dist/app/`
+   - Create the directory `dist/app/src/db/` and copy `extra_features.sqlite` into it.
+
+### Running the Executable
+Go to `dist/app/` and run **`app.exe`**. It will automatically launch your default web browser and open the dashboard at `http://127.0.0.1:8050`.

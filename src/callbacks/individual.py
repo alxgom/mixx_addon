@@ -11,17 +11,27 @@ from spotipy.oauth2 import SpotifyOAuth,  SpotifyClientCredentials
 import logging
 import os
 
+from src.paths import get_data_path
+
 # Define the path where Render mounts the secret file
 SECRET_FILE_PATH = '/etc/secrets/config.json'
 
-# Check if the secret file exists (on Render)
-if os.path.exists(SECRET_FILE_PATH):
-    with open(SECRET_FILE_PATH, 'r') as f:
-        config = json.load(f)
-# Otherwise, fall back to the local file (for your computer)
-else:
-    with open('config.json', 'r') as f:
-        config = json.load(f)
+def load_config():
+    # Check if the secret file exists (on Render)
+    if os.path.exists(SECRET_FILE_PATH):
+        with open(SECRET_FILE_PATH, 'r') as f:
+            return json.load(f)
+    # Otherwise, fall back to the local file (for your computer or bundled app)
+    else:
+        config_path = get_data_path('config.json')
+        if not os.path.exists(config_path):
+             # Fallback to source root if not found in bundled root (dev case)
+             # But get_data_path already handles source root in dev
+             pass
+        with open(config_path, 'r') as f:
+            return json.load(f)
+
+config = load_config()
 
 auth_manager = SpotifyClientCredentials(
     client_id=config['spotify']['client_id'],
@@ -31,12 +41,7 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 def get_auth_manager():
     """Helper to return a configured SpotifyOAuth object that doesn't hang."""
-    if os.path.exists(SECRET_FILE_PATH):
-        with open(SECRET_FILE_PATH, 'r') as f:
-            _config = json.load(f)
-    else:
-        with open('config.json', 'r') as f:
-            _config = json.load(f)
+    _config = load_config()
 
     return SpotifyOAuth(
         client_id=_config['spotify']['client_id'],
