@@ -51,9 +51,47 @@ if __name__ == '__main__':
     
     if getattr(sys, 'frozen', False):
         # Production build (executable)
-        print(f"Starting production server on {url}")
-        webbrowser.open(url)
-        serve(app.server, host='127.0.0.1', port=port)
+        import socket
+        import threading
+
+        # Single instance: if the server is already running, just open the browser.
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            already_running = s.connect_ex(('127.0.0.1', port)) == 0
+        if already_running:
+            webbrowser.open(url)
+            sys.exit(0)
+
+        import pystray
+        from PIL import Image, ImageDraw
+
+        threading.Thread(
+            target=lambda: serve(app.server, host='127.0.0.1', port=port),
+            daemon=True,
+        ).start()
+        threading.Timer(1, lambda: webbrowser.open(url)).start()
+
+        # Simple generated tray icon (vinyl-like disc)
+        img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        draw.ellipse((2, 2, 62, 62), fill=(30, 30, 30, 255))
+        draw.ellipse((22, 22, 42, 42), fill=(230, 120, 40, 255))
+        draw.ellipse((29, 29, 35, 35), fill=(30, 30, 30, 255))
+
+        def on_quit(icon, item):
+            icon.stop()
+            os._exit(0)  # terminates the waitress thread
+
+        icon = pystray.Icon(
+            'mixxx_dashboard',
+            img,
+            'Mixxx DJ Dashboard',
+            menu=pystray.Menu(
+                pystray.MenuItem('Open dashboard', lambda icon, item: webbrowser.open(url), default=True),
+                pystray.MenuItem('Quit', on_quit),
+            ),
+        )
+        icon.run()
     else:
         # Development mode (running app.py directly)
         # Timer helps ensure the server is up before the browser opens
