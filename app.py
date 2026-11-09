@@ -71,12 +71,15 @@ if __name__ == '__main__':
         ).start()
         threading.Timer(1, lambda: webbrowser.open(url)).start()
 
-        # Simple generated tray icon (vinyl-like disc)
-        img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-        draw.ellipse((2, 2, 62, 62), fill=(30, 30, 30, 255))
-        draw.ellipse((22, 22, 42, 42), fill=(230, 120, 40, 255))
-        draw.ellipse((29, 29, 35, 35), fill=(30, 30, 30, 255))
+        # Tray icon: bundled app icon, fallback to a drawn disc
+        try:
+            img = Image.open(get_resource_path(os.path.join('assets', 'app_icon.png')))
+        except Exception:
+            img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            draw.ellipse((2, 2, 62, 62), fill=(30, 30, 30, 255))
+            draw.ellipse((22, 22, 42, 42), fill=(230, 120, 40, 255))
+            draw.ellipse((29, 29, 35, 35), fill=(30, 30, 30, 255))
 
         def on_quit(icon, item):
             icon.stop()
