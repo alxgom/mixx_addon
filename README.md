@@ -70,14 +70,10 @@ You can compile this application into a standalone Windows executable (`.exe`). 
    ```bash
    poetry install
    ```
-2. **Run the build command**:
-   ```bash
-   poetry run pyinstaller --onedir --noconsole --add-data "assets;assets" app.py --noconfirm --clean
+2. **Run the build script** (stops a running instance, builds, and copies `config.json` and `src/db/extra_features.sqlite` into `dist/app/`):
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File build.ps1
    ```
-3. **Copy required files**:
-   After the build finishes, you need to manually copy your configuration and private database into the `dist/app/` folder:
-   - Copy `config.json` into `dist/app/`
-   - Create the directory `dist/app/src/db/` and copy `extra_features.sqlite` into it.
 
 ### Running the Executable
 Go to `dist/app/` and run **`app.exe`**. It will automatically launch your default web browser and open the dashboard at `http://127.0.0.1:8050`.
